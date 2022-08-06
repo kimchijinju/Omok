@@ -58,8 +58,6 @@ ERROR_CODE PacketProcess::NtfSysConnctSession(PacketInfo packetInfo)
 {
 	m_pRefLogger->Write(LOG_TYPE::L_INFO, "%s | NtfSysConnctSession. sessionIndex(%d)", __FUNCTION__, packetInfo.SessionIndex);
 
-	//TODO: 유저가 방에 들어간 상태이면 방에서 빼고, 방에 아직 유저가 있다면 있는 유저에게 PK_USER_LEAVE_ROOM_NTF을 보낸다
-
 	return ERROR_CODE::NONE;
 }
 
@@ -87,75 +85,65 @@ ERROR_CODE PacketProcess::Login(PacketInfo packetInfo)
 
 	if (addRet != ERROR_CODE::NONE) {
 		resPkt.SetError(addRet);
-		m_pRefNetwork->SendData(packetInfo.SessionIndex, (short)PACKET_ID::PK_LOGIN_IN_RES, sizeof(PktLogInRes), (char*)&resPkt);
-		return addRet;
+		return SendError(packetInfo.SessionIndex, (short)PACKET_ID::PK_LOGIN_IN_RES, sizeof(resPkt), (char*)&resPkt, addRet);
+	}
+
+	if (addRet == ERROR_CODE::USER_IN_ROOM)
+	{
+		m_pRefLogger->Write(LOG_TYPE::L_INFO, "dup");
+
 	}
 		
-	resPkt.ErrorCode = (short)addRet;
-	m_pRefNetwork->SendData(packetInfo.SessionIndex, (short)PACKET_ID::PK_LOGIN_IN_RES, sizeof(PktLogInRes), (char*)&resPkt);
-
+	resPkt.SetError(addRet);
+	m_pRefNetwork->SendData(packetInfo.SessionIndex, (short)PACKET_ID::PK_LOGIN_IN_RES, sizeof(resPkt), (char*)&resPkt);
 	return ERROR_CODE::NONE;
 }
 
 //TODO: 방 입장
 ERROR_CODE PacketProcess::EnterRoom(PacketInfo packetInfo)
 {
-	PktEnterRoomRes resPkt;
+	PktEnterRoomRes resPkt;	
 	auto reqPkt = (PktEnterRoomReq*)packetInfo.pRefData;
-	// 에러체크: 이미 방에 들어가 있는지 확인한다
-	User* user = std::get<1>(m_pRefUserMgr->GetUser(packetInfo.SessionIndex));
+	auto [errorCode, user] = m_pRefUserMgr->GetUser(packetInfo.SessionIndex);
+	
+	if (errorCode != ERROR_CODE::NONE) 
+	{
+		resPkt.SetError(ERROR_CODE::UNASSIGNED_ERROR);
+		return SendError(packetInfo.SessionIndex, (short)PACKET_ID::PK_ENTER_ROOM_RES, sizeof(resPkt), (char*)&resPkt, ERROR_CODE::USER_NOT_LOGIN);
+	}
+
+	if (!user->IsCurDomainInLogIn())
+	{
+		resPkt.SetError(ERROR_CODE::USER_NOT_LOGIN);
+		return SendError(packetInfo.SessionIndex, (short)PACKET_ID::PK_ENTER_ROOM_RES, sizeof(resPkt), (char*)&resPkt, ERROR_CODE::USER_NOT_LOGIN);
+	}
+
 	if(user->IsCurDomainInRoom())
 	{
-		m_pRefLogger->Write(LOG_TYPE::L_INFO, "in room error");
 		resPkt.SetError(ERROR_CODE::USER_IN_ROOM);
-		m_pRefNetwork->SendData(packetInfo.SessionIndex, (short)PACKET_ID::PK_ENTER_ROOM_RES, sizeof(PktEnterRoomRes), (char*)&resPkt);
-		return ERROR_CODE::USER_IN_ROOM;
+		return SendError(packetInfo.SessionIndex, (short)PACKET_ID::PK_ENTER_ROOM_RES, sizeof(resPkt), (char*)&resPkt, ERROR_CODE::USER_IN_ROOM);
 	}
-	// 에러체크: 방 번호가 서버가 생성한 방번호 보다 큰지 확인한다
+	
 	if (reqPkt->RoomNumber >= m_pRefRoomMgr->MaxRoomCount())
 	{
-		m_pRefLogger->Write(LOG_TYPE::L_INFO, "index error ");
 		resPkt.SetError(ERROR_CODE::ROOM_INVALID_INDEX);
-		m_pRefNetwork->SendData(packetInfo.SessionIndex, (short)PACKET_ID::PK_ENTER_ROOM_RES, sizeof(PktEnterRoomRes), (char*)&resPkt);
-		return ERROR_CODE::ROOM_INVALID_INDEX;
+		return SendError(packetInfo.SessionIndex, (short)PACKET_ID::PK_ENTER_ROOM_RES, sizeof(resPkt), (char*)&resPkt, ERROR_CODE::ROOM_INVALID_INDEX);
 	}
-	m_pRefLogger->Write(LOG_TYPE::L_INFO, "room index : %d", reqPkt->RoomNumber);
-	/* 방번호의 방 객체를 얻는다.
 
-	방에 들어간 인원이 이미 다 찬 상태이면 실패이다.
-
-	원하는 방번호를 가진 방에 입장시킨다. */
 	Room* room;
 
 	if (reqPkt->RoomNumber == -1)
-	{
 		room = m_pRefRoomMgr->SearchEmptyRoom();
-	}
 	else
-	{
 		room = m_pRefRoomMgr->GetRoom(reqPkt->RoomNumber);
-	}
+
 	room->EnterUser(user);
-
-	/*
-	  위에서 성공한 경우
- 	  현재 방 인원수가 2명 이상이면 이미 다른 사람이 있는 방에 입장한 것이므로 기존 사람들에게
-	  PK_NEW_USER_ENTER_ROOM_NTF 패킷을 보낸다.	 
-
-	  유저 상태를 방 입장 상태로 바꾸고, 방번호를 저장한다
-	*/
-	if (room->GetUserCount() >= 2)
-	{
-		for (int i = 0; i < room->GetUserCount() - 1; i++) 
-		{
-			m_pRefLogger->Write(LOG_TYPE::L_INFO, "in Loop");
-			auto userSession = room->GetUser(i)->GetSessionIndex();
-			resPkt.SetError(ERROR_CODE::NONE);
-			m_pRefNetwork->SendData(userSession, (short)PACKET_ID::PK_NEW_USER_ENTER_ROOM_NTF, sizeof(PktEnterRoomRes), (char*)&resPkt);
-		}
-	}
 	user->EnterRoom(reqPkt->RoomNumber);
 
+	room->NotifyEnterUser(user);
+
+	resPkt.SetError(ERROR_CODE::NONE);
+	m_pRefNetwork->SendData(packetInfo.SessionIndex, (short)PACKET_ID::PK_ENTER_ROOM_RES, sizeof(resPkt), (char*)&resPkt);
 	return ERROR_CODE::NONE;
 }
 
@@ -164,27 +152,33 @@ ERROR_CODE PacketProcess::LeaveRoom(PacketInfo packetInfo)
 {
 	PktLeaveRoomRes resPkt;
 	
-	User* user = std::get<1>(m_pRefUserMgr->GetUser(packetInfo.SessionIndex));
-	// 유저가 방에 들어온 상태가 맞는지 확인한다
+	auto [errorCode, user] = m_pRefUserMgr->GetUser(packetInfo.SessionIndex);
+
+	if (errorCode != ERROR_CODE::NONE)
+	{
+		resPkt.SetError(ERROR_CODE::UNASSIGNED_ERROR);
+		return SendError(packetInfo.SessionIndex, (short)PACKET_ID::PK_LEAVE_ROOM_RES, sizeof(resPkt), (char*)&resPkt, ERROR_CODE::USER_NOT_LOGIN);
+	}
+
 	if (!user->IsCurDomainInRoom())
 	{
-		resPkt.SetError(ERROR_CODE::USER_IN_ROOM);
-		m_pRefNetwork->SendData(packetInfo.SessionIndex, (short)PACKET_ID::PK_LEAVE_ROOM_RES, sizeof(PktLeaveRoomRes), (char*)&resPkt);
-		return ERROR_CODE::USER_IN_ROOM;
+		resPkt.SetError(ERROR_CODE::USER_NOT_IN_ROOM);
+		return SendError(packetInfo.SessionIndex, (short)PACKET_ID::PK_LEAVE_ROOM_RES, sizeof(resPkt), (char*) &resPkt, ERROR_CODE::USER_NOT_IN_ROOM);
 	}
-	// 유저가 들어간 방의 객체를 가져온다
+
 	Room* room = m_pRefRoomMgr->GetRoom(user->GetRoomIndex());
-	// 방에서 유저를 빼고, 유저 상태도 변경한다.
-	room->ExitUser(user);
+
 	user->ExitRoom();
-	// 아직 방에 다른 유저가 있다면 PK_USER_LEAVE_ROOM_NTF을 보낸다
-	for (int i = 0; i < room->GetUserCount(); i++)
-	{
-		int userSession = room->GetUser(i)->GetSessionIndex();
-		m_pRefNetwork->SendData(userSession, (short)PACKET_ID::PK_USER_LEAVE_ROOM_NTF, sizeof(PktLeaveRoomRes), &resPkt);
-	}
+	room->ExitUser(user);
+
+	room->NotifyLeaveUser(user);
+
+	resPkt.SetError(ERROR_CODE::NONE);
+	m_pRefNetwork->SendData(packetInfo.SessionIndex, (short)PACKET_ID::PK_LEAVE_ROOM_RES, sizeof(resPkt), (char*)&resPkt);
+
 	return ERROR_CODE::NONE;
 }
+
 
 //TODO: 방 채팅
 ERROR_CODE PacketProcess::ChatRoom(PacketInfo packetInfo)
@@ -192,11 +186,35 @@ ERROR_CODE PacketProcess::ChatRoom(PacketInfo packetInfo)
 	PktChatRoomRes resPkt;
 	auto reqPkt = (PktChatRoomReq*)packetInfo.pRefData;
 
-	// 유저가 방에 들어온 상태가 맞는지 확인한다
-	// 유저가 들어간 방의 객체를 가져온다
+	auto [errorCode, user] = m_pRefUserMgr->GetUser(packetInfo.SessionIndex);
+	
+	if (errorCode != ERROR_CODE::NONE)
+	{
+		resPkt.SetError(ERROR_CODE::UNASSIGNED_ERROR);
+		return SendError(packetInfo.SessionIndex, (short)PACKET_ID::PK_CHAT_ROOM_RES, sizeof(resPkt), (char*)&resPkt, ERROR_CODE::USER_NOT_LOGIN);
+	}
 
-	// 채팅 메시지에 문제가 없다면 요청이 성공함을 알린다
+	if (!user->IsCurDomainInRoom())
+	{
+		resPkt.SetError(ERROR_CODE::USER_NOT_IN_ROOM);
+		return SendError(packetInfo.SessionIndex, (short)PACKET_ID::PK_CHAT_ROOM_RES, sizeof(resPkt), (char*)&resPkt, ERROR_CODE::USER_NOT_IN_ROOM);
+	}
 
-	// 방의 모든 유저에게 PK_CHAT_ROOM_NTF을 보낸다
+	Room* room = m_pRefRoomMgr->GetRoom(user->GetRoomIndex());
+	
+	wchar_t msg[256];
+	wcscpy_s(msg, reqPkt->Msg);
+	m_pRefLogger->Write(LOG_TYPE::L_INFO, "%s", reqPkt->Msg);
+	room->NotifyChat(reqPkt->Msg, user->GetID());
+
+	resPkt.SetError(ERROR_CODE::NONE);
+	m_pRefNetwork->SendData(packetInfo.SessionIndex, (short)PACKET_ID::PK_CHAT_ROOM_RES, sizeof(resPkt), (char*)&resPkt);
+
 	return ERROR_CODE::NONE;
+}
+
+ERROR_CODE PacketProcess::SendError(int sessionIndex, short packetID, int size, char* data, ERROR_CODE errorCode)
+{
+	m_pRefNetwork->SendData(sessionIndex, packetID, size, data);
+	return errorCode;
 }

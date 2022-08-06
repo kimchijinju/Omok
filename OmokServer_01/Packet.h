@@ -34,7 +34,7 @@ struct PktLogInRes : PktBase
 //- 룸에 들어가기 요청
 struct PktEnterRoomReq
 {
-	short RoomNumber;
+	int RoomNumber;
 };
 
 struct PktEnterRoomRes : PktBase
@@ -45,6 +45,7 @@ struct PktEnterRoomRes : PktBase
 //- 룸에 있는 유저에게 새로 들어온 유저 정보 통보
 struct PktNewUserEnterRoomNtf
 {
+	unsigned char	UserIDSize;
 	char UserID[MAX_USER_ID_SIZE] = { 0, };
 };
 
@@ -59,12 +60,13 @@ struct PktLeaveRoomRes : PktBase
 //- 룸에서 나가는 유저 통보(로비에 있는 유저에게)
 struct PktUserLeaveRoomNtf
 {
+	unsigned char UserIDSize;
 	char UserID[MAX_USER_ID_SIZE] = { 0, };
 };
 		
 
 //- 룸 채팅
-const int MAX_ROOM_CHAT_MSG_SIZE = 256;
+const short MAX_ROOM_CHAT_MSG_SIZE = 256;
 struct PktChatRoomReq
 {
 	wchar_t Msg[MAX_ROOM_CHAT_MSG_SIZE] = { 0, };
@@ -76,7 +78,9 @@ struct PktChatRoomRes : PktBase
 
 struct PktChatRoomNtf
 {
+	unsigned char UserIDSize;
 	char UserID[MAX_USER_ID_SIZE] = { 0, };
+	short MsgSize;
 	wchar_t Msg[MAX_ROOM_CHAT_MSG_SIZE] = { 0, };
 };
 #pragma pack(pop)

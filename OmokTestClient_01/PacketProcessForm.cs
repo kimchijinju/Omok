@@ -73,7 +73,8 @@ namespace csharp_test_client
 
             for (int i = 0; i < notifyPkt.UserCount; ++i)
             {
-                AddRoomUserList(notifyPkt.UserUniqueIdList[i], notifyPkt.UserIDList[i]);
+                //AddRoomUserList(notifyPkt.UserUniqueIdList[i], notifyPkt.UserIDList[i]);
+                AddRoomUserList(notifyPkt.UserIDList[i]);
             }
 
             DevLog.Write($"방의 기존 유저 리스트 받음");
@@ -84,7 +85,8 @@ namespace csharp_test_client
             var notifyPkt = new RoomNewUserNtfPacket();
             notifyPkt.FromBytes(bodyData);
 
-            AddRoomUserList(notifyPkt.UserUniqueId, notifyPkt.UserID);
+            //AddRoomUserList(notifyPkt.UserUniqueId, notifyPkt.UserID);
+            AddRoomUserList( notifyPkt.UserID);
             
             DevLog.Write($"방에 새로 들어온 유저 받음");
         }
@@ -103,7 +105,8 @@ namespace csharp_test_client
             var notifyPkt = new RoomLeaveUserNtfPacket();
             notifyPkt.FromBytes(bodyData);
 
-            RemoveRoomUserList(notifyPkt.UserUniqueId);
+            //RemoveRoomUserList(notifyPkt.UserUniqueId);
+            RemoveRoomUserList(notifyPkt.UserID);
 
             DevLog.Write($"방에서 나간 유저 받음");
         }
@@ -122,7 +125,8 @@ namespace csharp_test_client
             }
             else
             {
-                AddRoomChatMessageList(0, msg);
+                //AddRoomChatMessageList(0, msg);
+                AddRoomChatMessageList(null, msg);
             }
         }
 
@@ -132,12 +136,13 @@ namespace csharp_test_client
             var responsePkt = new RoomChatNtfPacket();
             responsePkt.FromBytes(bodyData);
 
-            AddRoomChatMessageList(responsePkt.UserUniqueId, responsePkt.Message);
+            //AddRoomChatMessageList(responsePkt.UserUniqueId, responsePkt.Message);
+            AddRoomChatMessageList(responsePkt.UserID, responsePkt.Message);
         }
 
-        void AddRoomChatMessageList(Int64 userUniqueId, string msgssage)
+        void AddRoomChatMessageList(string userID, string msgssage)
         {
-            var msg = $"{userUniqueId}:  {msgssage}";
+            var msg = $"{userID}:  {msgssage}";
 
             if (listBoxRoomChatMsg.Items.Count > 512)
             {
@@ -155,7 +160,8 @@ namespace csharp_test_client
             notifyPkt.FromBytes(bodyData);
 
             var stringData = Encoding.UTF8.GetString(notifyPkt.RelayData);
-            DevLog.Write($"방에서 릴레이 받음. {notifyPkt.UserUniqueId} - {stringData}");
+            //DevLog.Write($"방에서 릴레이 받음. {notifyPkt.UserUniqueId} - {stringData}");
+            DevLog.Write($"방에서 릴레이 받음. {stringData}");
         }
     }
 }

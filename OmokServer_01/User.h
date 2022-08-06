@@ -57,7 +57,7 @@ public:
 	void ExitRoom()
 	{
 		m_RoomIndex = -1;
-		m_CurDomainState = DOMAIN_STATE::NONE;
+		m_CurDomainState = DOMAIN_STATE::LOGIN;
 	}
 
 	bool IsCurDomainInLogIn() {

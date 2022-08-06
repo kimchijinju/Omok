@@ -1,5 +1,6 @@
 ﻿#include <algorithm>
 #include <cstring>
+#include <vector>
 #include <wchar.h>
 
 #include "NetLib/ILog.h"
@@ -42,9 +43,52 @@ void Room::EnterUser(User* user)
 
 void Room::ExitUser(User* user)
 {
-	m_UserList.erase(m_UserList.begin() + user->GetIndex());
+	m_UserList.erase(std::find(m_UserList.begin(), m_UserList.end(), user));
 }
 
+void Room::NotifyEnterUser(User* user)
+{
+	PktNewUserEnterRoomNtf ntfPkt;
+
+	strcpy_s(ntfPkt.UserID, user->GetID().c_str());
+	ntfPkt.UserIDSize = (unsigned char)user->GetID().size();
+
+	for (User* roomUser : m_UserList)
+	{
+		int userSession = roomUser->GetSessionIndex();
+		m_pRefNetwork->SendData(userSession, (short)PACKET_ID::PK_NEW_USER_ENTER_ROOM_NTF, sizeof(ntfPkt), (char*)&ntfPkt);
+	}
+}
+#include <iostream>
+void Room::NotifyChat(wchar_t* msg, std::string UserID)
+{
+	PktChatRoomNtf ntfPkt;
+
+	strcpy(ntfPkt.UserID, UserID.c_str());
+	ntfPkt.UserIDSize = strlen(ntfPkt.UserID);
+
+	wcscpy_s(ntfPkt.Msg, msg);
+	ntfPkt.MsgSize = wcslen(ntfPkt.Msg);
+	std::cout << ntfPkt.Msg << std::endl;
+	for (User* roomUser : m_UserList)
+	{
+		int userSession = roomUser->GetSessionIndex();
+		m_pRefNetwork->SendData(userSession, (short)PACKET_ID::PK_CHAT_ROOM_NTF, sizeof(ntfPkt), (char*)&ntfPkt);
+	}
+}
+
+void Room::NotifyLeaveUser(User* user)
+{
+	PktUserLeaveRoomNtf ntfPkt;
+
+	strcpy_s(ntfPkt.UserID, user->GetID().c_str());
+	ntfPkt.UserIDSize = user->GetID().size();
+
+	for (User* roomUser : m_UserList)
+	{
+		m_pRefNetwork->SendData(roomUser->GetSessionIndex(), (short)PACKET_ID::PK_USER_LEAVE_ROOM_NTF, sizeof(ntfPkt), (char*)&ntfPkt);
+	}
+}
 User* Room::GetUser(int index)
 {
 	return m_UserList[index];

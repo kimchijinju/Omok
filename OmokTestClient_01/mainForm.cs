@@ -287,20 +287,20 @@ namespace csharp_test_client
             SendPacketQueue.Enqueue(dataSource.ToArray());
         }
 
-        void AddRoomUserList(Int64 userUniqueId, string userID)
+        void AddRoomUserList(string userID)
         {
-            var msg = $"{userUniqueId}: {userID}";
+            var msg = $"{userID}";
             listBoxRoomUserList.Items.Add(msg);
         }
 
-        void RemoveRoomUserList(Int64 userUniqueId)
+        void RemoveRoomUserList(string UserID)
         {
             object removeItem = null;
 
             foreach( var user in listBoxRoomUserList.Items)
             {
-                var items = user.ToString().Split(":");
-                if( items[0].ToInt64() == userUniqueId)
+                var items = user.ToString();
+                if(items.Equals(UserID))
                 {
                     removeItem = user;
                     return;

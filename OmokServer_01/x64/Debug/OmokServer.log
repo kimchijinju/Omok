@@ -1,8 +1,5 @@
 ﻿  PacketProcess.cpp
-C:\Users\hangy\source\repos\Game_Server_Study_01\OmokServer_02_0\PacketProcess.cpp(184,114): error C2664: 'NServerNetLib::NET_ERROR_CODE NServerNetLib::ITcpNetwork::SendData(const int,const short,const short,const char *)': 인수 4을(를) 'PktLeaveRoomRes *'에서 'const char *'(으)로 변환할 수 없습니다.
-C:\Users\hangy\source\repos\Game_Server_Study_01\OmokServer_02_0\PacketProcess.cpp(184,107): message : 가리킨 형식이 관련이 없습니다. 변환하려면 reinterpret_cast, C 스타일 캐스트 또는 괄호가 있는 함수 스타일 캐스트가 필요합니다.
-C:\Users\hangy\source\repos\Game_Server_Study_01\OmokServer_02_0\NetLib\ITcpNetwork.h(17,26): message : 'NServerNetLib::ITcpNetwork::SendData' 선언을 참조하십시오.
-  Room.cpp
-  RoomManager.cpp
-  UserManager.cpp
-  코드를 생성하고 있습니다...
+C:\Users\binn3\source\repos\myGameServerStudy\OmokServer_01\PacketProcess.cpp(138,39): warning C4244: '인수': 'int'에서 'const short'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\binn3\source\repos\myGameServerStudy\OmokServer_01\PacketProcess.cpp(141,24): warning C4244: '인수': 'int'에서 'const short'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\binn3\source\repos\myGameServerStudy\OmokServer_01\PacketProcess.cpp(218,50): warning C4244: '인수': 'int'에서 'const short'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+  OmokServer.vcxproj -> C:\Users\binn3\source\repos\myGameServerStudy\OmokServer_01\Bin\OmokServer.exe

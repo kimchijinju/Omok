@@ -49,5 +49,6 @@ private:
 
 	ERROR_CODE EnterRoom(PacketInfo packetInfo);
 	ERROR_CODE LeaveRoom(PacketInfo packetInfo);
+	ERROR_CODE SendError(int sessionIndex, short packetID, int size, char* data, ERROR_CODE errorCode);
 	ERROR_CODE ChatRoom(PacketInfo packetInfo);
 };

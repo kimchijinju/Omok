@@ -1,9 +1,7 @@
 {
   "ExpandedNodes": [
-    "",
-    "\\OmokServer_01",
-    "\\OmokTestClient_01"
+    ""
   ],
-  "SelectedNode": "\\OmokTestClient_01\\csharp_test_client.sln",
+  "SelectedNode": "\\OmokServer.sln",
   "PreviewInSolutionExplorer": false
 }

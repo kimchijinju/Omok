@@ -33,6 +33,12 @@ public:
 
 	void ExitUser(User* user);
 
+	void NotifyEnterUser(User* user);
+
+	void NotifyLeaveUser(User* user);
+
+	void NotifyChat(wchar_t* msg, std::string UserID);
+
 	short GetIndex() { return m_Index;  }
 
 	User* GetUser(int index);
@@ -43,7 +49,6 @@ public:
 
 	short GetUserCount() { return (short)m_UserList.size(); }
 		
-
 private:
 	ILog* m_pRefLogger;
 	TcpNet* m_pRefNetwork;
