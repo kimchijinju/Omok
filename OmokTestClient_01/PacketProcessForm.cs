@@ -21,6 +21,10 @@ namespace csharp_test_client
             PacketFuncDic.Add(PACKET_ID.ROOM_LEAVE_USER_NTF, PacketProcess_RoomLeaveUserNotify);
             PacketFuncDic.Add(PACKET_ID.ROOM_CHAT_RES, PacketProcess_RoomChatResponse);            
             PacketFuncDic.Add(PACKET_ID.ROOM_CHAT_NOTIFY, PacketProcess_RoomChatNotify);
+            PacketFuncDic.Add(PACKET_ID.PK_READY_GAME_ROOM_RES, PacketProcess_ReadyGameResponse);
+            PacketFuncDic.Add(PACKET_ID.PK_CANCEL_READY_GAME_ROOM_RES, PacketProcess_CancelReadyGameResponse);
+            PacketFuncDic.Add(PACKET_ID.PK_START_GAME_ROOM_NTF, PacketProcess_GameStart);
+
             //PacketFuncDic.Add(PACKET_ID.PACKET_ID_ROOM_RELAY_NTF, PacketProcess_RoomRelayNotify);
         }
 
@@ -73,7 +77,6 @@ namespace csharp_test_client
 
             for (int i = 0; i < notifyPkt.UserCount; ++i)
             {
-                //AddRoomUserList(notifyPkt.UserUniqueIdList[i], notifyPkt.UserIDList[i]);
                 AddRoomUserList(notifyPkt.UserIDList[i]);
             }
 
@@ -85,8 +88,7 @@ namespace csharp_test_client
             var notifyPkt = new RoomNewUserNtfPacket();
             notifyPkt.FromBytes(bodyData);
 
-            //AddRoomUserList(notifyPkt.UserUniqueId, notifyPkt.UserID);
-            AddRoomUserList( notifyPkt.UserID);
+            AddRoomUserList(notifyPkt.UserID);
             
             DevLog.Write($"방에 새로 들어온 유저 받음");
         }
@@ -97,6 +99,8 @@ namespace csharp_test_client
             var responsePkt = new RoomLeaveResPacket();
             responsePkt.FromBytes(bodyData);
 
+            RoomUserListClear();
+
             DevLog.Write($"방 나가기 결과:  {(ERROR_CODE)responsePkt.Result}");
         }
 
@@ -105,7 +109,6 @@ namespace csharp_test_client
             var notifyPkt = new RoomLeaveUserNtfPacket();
             notifyPkt.FromBytes(bodyData);
 
-            //RemoveRoomUserList(notifyPkt.UserUniqueId);
             RemoveRoomUserList(notifyPkt.UserID);
 
             DevLog.Write($"방에서 나간 유저 받음");
@@ -125,18 +128,17 @@ namespace csharp_test_client
             }
             else
             {
-                //AddRoomChatMessageList(0, msg);
-                AddRoomChatMessageList(null, msg);
+                DevLog.Write("FAIL");
+                //AddRoomChatMessageList(, msg);
             }
         }
-
+          
 
         void PacketProcess_RoomChatNotify(byte[] bodyData)
         {
             var responsePkt = new RoomChatNtfPacket();
             responsePkt.FromBytes(bodyData);
 
-            //AddRoomChatMessageList(responsePkt.UserUniqueId, responsePkt.Message);
             AddRoomChatMessageList(responsePkt.UserID, responsePkt.Message);
         }
 
@@ -153,15 +155,44 @@ namespace csharp_test_client
             listBoxRoomChatMsg.SelectedIndex = listBoxRoomChatMsg.Items.Count - 1;
         }
 
-
-        void PacketProcess_RoomRelayNotify(byte[] bodyData)
+        void PacketProcess_ReadyGameResponse(byte[] bodyData)
         {
-            var notifyPkt = new RoomRelayNtfPacket();
-            notifyPkt.FromBytes(bodyData);
+            var resPkt = new ReadyGameRoomRes();
+            resPkt.FromBytes(bodyData);
 
-            var stringData = Encoding.UTF8.GetString(notifyPkt.RelayData);
-            //DevLog.Write($"방에서 릴레이 받음. {notifyPkt.UserUniqueId} - {stringData}");
-            DevLog.Write($"방에서 릴레이 받음. {stringData}");
+            DevLog.Write($"준비 결과 : {(ERROR_CODE)resPkt.Result}");
+            //레디 표시 로직
+        }
+
+        void PacketProcess_CancelReadyGameResponse(byte[] bodyData)
+        {
+            var resPkt = new CancelReadyGameRoomRes();
+            resPkt.FromBytes(bodyData);
+
+            DevLog.Write($"준비 취소 결과 : {(ERROR_CODE)resPkt.Result}");
+            //레디 취소 로직
+        }
+
+        void PacketProcess_GameStart(byte[] bodyData)
+        {
+            var ntfPkt = new StartGameRoomNtfPacket();
+            ntfPkt.FromBytes(bodyData);
+
+            DevLog.Write($"시작 턴 유저 : {ntfPkt.TurnUserID}");
+
+            btn_GameStart.Enabled = false;
+            btn_Ready.Enabled = false;
+            btn_Cancel.Enabled = false;
+            btn_RoomEnter.Enabled = false;
+            btn_RoomLeave.Enabled = false;
+
+        }
+
+        void RoomUserListClear()
+        {
+            listBoxRoomUserList.Items.Clear();
+            listBoxRoomChatMsg.Items.Clear();
         }
     }
+
 }

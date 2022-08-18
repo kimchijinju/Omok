@@ -92,12 +92,10 @@ namespace csharp_test_client
     public class RoomEnterResPacket
     {
         public Int16 Result;
-        // public Int64 RoomUserUniqueId;
 
         public bool FromBytes(byte[] bodyData)
         {
             Result = BitConverter.ToInt16(bodyData, 0);
-            //RoomUserUniqueId = BitConverter.ToInt64(bodyData, 2);
             return true;
         }
     }
@@ -105,7 +103,6 @@ namespace csharp_test_client
     public class RoomUserListNtfPacket
     {
         public int UserCount = 0;
-        //public List<Int64> UserUniqueIdList = new List<Int64>();
         public List<string> UserIDList = new List<string>();
 
         public bool FromBytes(byte[] bodyData)
@@ -116,16 +113,11 @@ namespace csharp_test_client
 
             for (int i = 0; i < userCount; ++i)
             {
-                var uniqeudId = BitConverter.ToInt64(bodyData, readPos);
-                readPos += 8;
+                var idlen = PacketDef.MAX_USER_ID_BYTE_LENGTH;
 
-                var idLen = (SByte)bodyData[readPos];
-                ++readPos;
+                var id = Encoding.UTF8.GetString(bodyData, readPos, idlen);
+                readPos += PacketDef.MAX_USER_ID_BYTE_LENGTH;
 
-                var id = Encoding.UTF8.GetString(bodyData, readPos, idLen);
-                readPos += idLen;
-
-                //UserUniqueIdList.Add(uniqeudId);
                 UserIDList.Add(id);
             }
 
@@ -136,21 +128,13 @@ namespace csharp_test_client
 
     public class RoomNewUserNtfPacket
     {
-        //public Int64 UserUniqueId;
         public string UserID;
 
         public bool FromBytes(byte[] bodyData)
         {
-            var readPos = 0;
 
-            // UserUniqueId = BitConverter.ToInt64(bodyData, readPos);
-            //readPos += 8;
-
-            var idLen = (SByte)bodyData[readPos];
-            ++readPos;
-
-            UserID = Encoding.UTF8.GetString(bodyData, readPos, idLen);
-            readPos += idLen;
+            UserID = Encoding.UTF8.GetString(bodyData, 0, PacketDef.MAX_USER_ID_BYTE_LENGTH);
+            UserID.Trim();
 
             return true;
         }
@@ -159,19 +143,17 @@ namespace csharp_test_client
 
     public class RoomChatReqPacket
     {
-        Int16 MsgLen;
-        byte[] Msg;//= new byte[PacketDef.MAX_USER_ID_BYTE_LENGTH];
+        byte[] Msg = new byte[PacketDef.MAX_ROOM_CHAT_MSG_SIZE];
 
         public void SetValue(string message)
         {
-            Msg = Encoding.UTF8.GetBytes(message);
-            MsgLen = (Int16)Msg.Length;
+            var msg = Encoding.UTF8.GetBytes(message);
+            Buffer.BlockCopy(msg, 0, Msg, 0, msg.Length);
         }
 
         public byte[] ToBytes()
         {
             List<byte> dataSource = new List<byte>();
-            dataSource.AddRange(BitConverter.GetBytes(MsgLen));
             dataSource.AddRange(Msg);
             return dataSource.ToArray();
         }
@@ -190,32 +172,29 @@ namespace csharp_test_client
 
     public class RoomChatNtfPacket
     {
-        //public Int64 UserUniqueId;
         public string UserID;
         public string Message;
 
-        //UserUniqueId = BitConverter.ToInt64(bodyData, 0);
         public bool FromBytes(byte[] bodyData)
         {
             var readPos = 0;
 
-            var idLen = (SByte)bodyData[readPos];
+            var idLen = bodyData[readPos];
             ++readPos;
-            
+
             UserID = Encoding.UTF8.GetString(bodyData, readPos, idLen);
-            readPos += idLen;
+            readPos += PacketDef.MAX_USER_ID_BYTE_LENGTH;
 
             var msgLen = BitConverter.ToInt16(bodyData, readPos);
-            byte[] messageTemp = new byte[msgLen];
             readPos += 2;
-            Buffer.BlockCopy(bodyData, readPos, messageTemp, 0, msgLen);
-            Message = Encoding.UTF8.GetString(messageTemp);
+
+            Message = Encoding.UTF8.GetString(bodyData, readPos, msgLen);
+
             return true;
         }
     }
 
-
-     public class RoomLeaveResPacket
+    public class RoomLeaveResPacket
     {
         public Int16 Result;
         
@@ -228,44 +207,47 @@ namespace csharp_test_client
 
     public class RoomLeaveUserNtfPacket
     {
-        //public Int64 UserUniqueId;
         public string UserID;
 
         public bool FromBytes(byte[] bodyData)
         {
-            var readPos = 0;
-
-            // UserUniqueId = BitConverter.ToInt64(bodyData, readPos);
-            //readPos += 8;
-
-            var idLen = (SByte)bodyData[readPos];
-            ++readPos;
-
-            UserID = Encoding.UTF8.GetString(bodyData, readPos, idLen);
-            readPos += idLen;
-
+            UserID = Encoding.UTF8.GetString(bodyData, 0, PacketDef.MAX_USER_ID_BYTE_LENGTH);
             return true;
         }
     }
 
-
-    
-    public class RoomRelayNtfPacket
+    public class ReadyGameRoomRes
     {
-       // public Int64 UserUniqueId;
-        public byte[] RelayData;
+        public Int16 Result;
 
         public bool FromBytes(byte[] bodyData)
         {
-          // UserUniqueId = BitConverter.ToInt64(bodyData, 0);
+            Result = BitConverter.ToInt16(bodyData, 0);
+            return true;
+        }
+    }
+    
+    public class CancelReadyGameRoomRes
+    {
+        public Int16 Result;
 
-            var relayDataLen = bodyData.Length;
-            RelayData = new byte[relayDataLen];
-            Buffer.BlockCopy(bodyData, 8, RelayData, 0, relayDataLen);
+        public bool FromBytes(byte[] bodyData)
+        {
+            Result = BitConverter.ToInt16(bodyData, 0);
             return true;
         }
     }
 
+    public class StartGameRoomNtfPacket
+    {
+        public string TurnUserID;
+
+        public bool FromBytes(byte[] bodyData)
+        {
+            TurnUserID = Encoding.UTF8.GetString(bodyData, 0, PacketDef.MAX_USER_ID_BYTE_LENGTH);
+            return true;
+        }
+    }
 
     public class PingRequest
     {

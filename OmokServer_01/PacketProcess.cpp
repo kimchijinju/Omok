@@ -49,6 +49,15 @@ void PacketProcess::Process(PacketInfo packetInfo)
 	case (int)commonPacketId::PK_CHAT_ROOM_REQ:
 		ChatRoom(packetInfo);
 		break;
+	case (int)commonPacketId::PK_READY_GAME_ROOM_REQ:
+		Ready(packetInfo);
+		break;
+	case (int)commonPacketId::PK_CANCEL_READY_GAME_ROOM_REQ:
+		CancelReady(packetInfo);
+		break;
+	case (int)commonPacketId::PK_START_GAME_ROOM_NTF:
+		GameStart(packetInfo);
+		break;
 	}
 	
 }
@@ -79,19 +88,13 @@ ERROR_CODE PacketProcess::Login(PacketInfo packetInfo)
 	// 패스워드는 무조건 pass 해준다.
 	// ID 중복이라면 에러 처리한다.
 	PktLogInRes resPkt;
-	auto reqPkt = (PktLogInReq*)packetInfo.pRefData;
 
+	auto reqPkt = (PktLogInReq*)packetInfo.pRefData;
 	auto addRet = m_pRefUserMgr->AddUser(packetInfo.SessionIndex, reqPkt->szID);
 
 	if (addRet != ERROR_CODE::NONE) {
 		resPkt.SetError(addRet);
 		return SendError(packetInfo.SessionIndex, (short)PACKET_ID::PK_LOGIN_IN_RES, sizeof(resPkt), (char*)&resPkt, addRet);
-	}
-
-	if (addRet == ERROR_CODE::USER_IN_ROOM)
-	{
-		m_pRefLogger->Write(LOG_TYPE::L_INFO, "dup");
-
 	}
 		
 	resPkt.SetError(addRet);
@@ -102,14 +105,15 @@ ERROR_CODE PacketProcess::Login(PacketInfo packetInfo)
 //TODO: 방 입장
 ERROR_CODE PacketProcess::EnterRoom(PacketInfo packetInfo)
 {
-	PktEnterRoomRes resPkt;	
+	PktEnterRoomRes resPkt;
+
 	auto reqPkt = (PktEnterRoomReq*)packetInfo.pRefData;
 	auto [errorCode, user] = m_pRefUserMgr->GetUser(packetInfo.SessionIndex);
 	
 	if (errorCode != ERROR_CODE::NONE) 
 	{
 		resPkt.SetError(ERROR_CODE::UNASSIGNED_ERROR);
-		return SendError(packetInfo.SessionIndex, (short)PACKET_ID::PK_ENTER_ROOM_RES, sizeof(resPkt), (char*)&resPkt, ERROR_CODE::USER_NOT_LOGIN);
+		return SendError(packetInfo.SessionIndex, (short)PACKET_ID::PK_ENTER_ROOM_RES, sizeof(resPkt), (char*)&resPkt, ERROR_CODE::UNASSIGNED_ERROR);
 	}
 
 	if (!user->IsCurDomainInLogIn())
@@ -137,10 +141,12 @@ ERROR_CODE PacketProcess::EnterRoom(PacketInfo packetInfo)
 	else
 		room = m_pRefRoomMgr->GetRoom(reqPkt->RoomNumber);
 
+	room->NotifyEnterUser(user);
+
 	room->EnterUser(user);
 	user->EnterRoom(reqPkt->RoomNumber);
 
-	room->NotifyEnterUser(user);
+	room->GetRoomUserList(user);
 
 	resPkt.SetError(ERROR_CODE::NONE);
 	m_pRefNetwork->SendData(packetInfo.SessionIndex, (short)PACKET_ID::PK_ENTER_ROOM_RES, sizeof(resPkt), (char*)&resPkt);
@@ -157,7 +163,7 @@ ERROR_CODE PacketProcess::LeaveRoom(PacketInfo packetInfo)
 	if (errorCode != ERROR_CODE::NONE)
 	{
 		resPkt.SetError(ERROR_CODE::UNASSIGNED_ERROR);
-		return SendError(packetInfo.SessionIndex, (short)PACKET_ID::PK_LEAVE_ROOM_RES, sizeof(resPkt), (char*)&resPkt, ERROR_CODE::USER_NOT_LOGIN);
+		return SendError(packetInfo.SessionIndex, (short)PACKET_ID::PK_LEAVE_ROOM_RES, sizeof(resPkt), (char*)&resPkt, ERROR_CODE::UNASSIGNED_ERROR);
 	}
 
 	if (!user->IsCurDomainInRoom())
@@ -185,13 +191,12 @@ ERROR_CODE PacketProcess::ChatRoom(PacketInfo packetInfo)
 {
 	PktChatRoomRes resPkt;
 	auto reqPkt = (PktChatRoomReq*)packetInfo.pRefData;
-
 	auto [errorCode, user] = m_pRefUserMgr->GetUser(packetInfo.SessionIndex);
 	
 	if (errorCode != ERROR_CODE::NONE)
 	{
 		resPkt.SetError(ERROR_CODE::UNASSIGNED_ERROR);
-		return SendError(packetInfo.SessionIndex, (short)PACKET_ID::PK_CHAT_ROOM_RES, sizeof(resPkt), (char*)&resPkt, ERROR_CODE::USER_NOT_LOGIN);
+		return SendError(packetInfo.SessionIndex, (short)PACKET_ID::PK_CHAT_ROOM_RES, sizeof(resPkt), (char*)&resPkt, ERROR_CODE::UNASSIGNED_ERROR);
 	}
 
 	if (!user->IsCurDomainInRoom())
@@ -202,15 +207,91 @@ ERROR_CODE PacketProcess::ChatRoom(PacketInfo packetInfo)
 
 	Room* room = m_pRefRoomMgr->GetRoom(user->GetRoomIndex());
 	
-	wchar_t msg[256];
-	wcscpy_s(msg, reqPkt->Msg);
-	m_pRefLogger->Write(LOG_TYPE::L_INFO, "%s", reqPkt->Msg);
-	room->NotifyChat(reqPkt->Msg, user->GetID());
+	room->NotifyChat(reqPkt->Msg, user->GetID(), user->GetSessionIndex());
 
 	resPkt.SetError(ERROR_CODE::NONE);
 	m_pRefNetwork->SendData(packetInfo.SessionIndex, (short)PACKET_ID::PK_CHAT_ROOM_RES, sizeof(resPkt), (char*)&resPkt);
 
 	return ERROR_CODE::NONE;
+}
+
+ERROR_CODE PacketProcess::Ready(PacketInfo packetInfo)
+{
+	PktReadyGameRoomRes resPkt;
+	
+	auto reqPkt = (PktReadyGameRoomReq*)packetInfo.pRefData;
+	auto [errorCode, user] = m_pRefUserMgr->GetUser(packetInfo.SessionIndex);
+	
+	if (errorCode != ERROR_CODE::NONE)
+	{
+		resPkt.SetError(ERROR_CODE::UNASSIGNED_ERROR);
+		return SendError(packetInfo.SessionIndex, (short)PACKET_ID::PK_READY_GAME_ROOM_RES, sizeof(resPkt), (char*)&resPkt, ERROR_CODE::UNASSIGNED_ERROR);
+	}
+
+	if (user->IsCurDomainInLogIn())
+	{
+		resPkt.SetError(ERROR_CODE::USER_NOT_IN_ROOM);
+		return SendError(packetInfo.SessionIndex, (short)PACKET_ID::PK_READY_GAME_ROOM_RES, sizeof(resPkt), (char*)&resPkt, ERROR_CODE::USER_NOT_IN_ROOM);;
+	}
+
+	user->Ready();
+
+	resPkt.SetError(ERROR_CODE::NONE);
+	return SendError(packetInfo.SessionIndex, (short)PACKET_ID::PK_READY_GAME_ROOM_RES, sizeof(resPkt), (char*)&resPkt, ERROR_CODE::NONE);;
+}
+
+ERROR_CODE PacketProcess::CancelReady(PacketInfo packetInfo)
+{
+	PktCancelReadyGameRoomRes resPkt;
+
+	auto reqPkt = (PktReadyGameRoomReq*)packetInfo.pRefData;
+	auto [errorCode, user] = m_pRefUserMgr->GetUser(packetInfo.SessionIndex);
+	
+	if (errorCode != ERROR_CODE::NONE)
+	{
+		resPkt.SetError(ERROR_CODE::UNASSIGNED_ERROR);
+		return SendError(packetInfo.SessionIndex, (short)PACKET_ID::PK_CANCEL_READY_GAME_ROOM_RES, sizeof(resPkt), (char*)&resPkt, ERROR_CODE::UNASSIGNED_ERROR);
+	}
+
+	if (user->IsReady())
+	{
+		user->CancelReady();
+		resPkt.SetError(ERROR_CODE::NONE);
+		m_pRefNetwork->SendData(packetInfo.SessionIndex, (short)PACKET_ID::PK_CANCEL_READY_GAME_ROOM_RES, sizeof(resPkt), (char*)&resPkt);
+		return ERROR_CODE::NONE;
+	}
+
+	resPkt.SetError(ERROR_CODE::UNASSIGNED_ERROR);
+	return SendError(packetInfo.SessionIndex, (short)PACKET_ID::PK_CANCEL_READY_GAME_ROOM_RES, sizeof(resPkt), (char*)&resPkt, ERROR_CODE::UNASSIGNED_ERROR);
+
+}
+
+ERROR_CODE PacketProcess::GameStart(PacketInfo packetInfo)
+{
+	PktStartGameRoomNtf ntfPkt;
+
+	auto reqPkt = (PktStartGameRoomNtf*)packetInfo.pRefData;
+	auto [errorCode, user] = m_pRefUserMgr->GetUser(packetInfo.SessionIndex);
+
+	if (errorCode != ERROR_CODE::NONE)
+	{
+		return SendError(packetInfo.SessionIndex, (short)PACKET_ID::PK_START_GAME_ROOM_NTF, sizeof(ntfPkt), (char*)&ntfPkt, ERROR_CODE::UNASSIGNED_ERROR);
+	}
+
+	Room* room = m_pRefRoomMgr->GetRoom(user->GetRoomIndex());
+	if (room == nullptr)
+	{
+		return SendError(packetInfo.SessionIndex, (short)PACKET_ID::PK_START_GAME_ROOM_NTF, sizeof(ntfPkt), (char*)&ntfPkt, ERROR_CODE::USER_NOT_IN_ROOM);
+	}
+
+	if (room->AllUserReady())
+	{
+		room->GameStart();
+		strcpy(ntfPkt.TurnUserID, user->GetID().c_str());
+		room->SendNotify((short)PACKET_ID::PK_START_GAME_ROOM_NTF, sizeof(ntfPkt), (char*)&ntfPkt);
+		return ERROR_CODE::NONE;
+	}
+	return ERROR_CODE::UNASSIGNED_ERROR;
 }
 
 ERROR_CODE PacketProcess::SendError(int sessionIndex, short packetID, int size, char* data, ERROR_CODE errorCode)

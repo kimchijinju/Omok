@@ -103,7 +103,7 @@ ERROR_CODE Server::LoadConfig()
 
 	m_pServerConfig->ExtraClientCount = 64;
 	m_pServerConfig->MaxRoomCount = 20;
-	m_pServerConfig->MaxRoomUserCount = 4;
+	m_pServerConfig->MaxRoomUserCount = 2;
 	    
 	m_pLogger->Write(NServerNetLib::LOG_TYPE::L_INFO, "%s | Port(%d), Backlog(%d)", __FUNCTION__, m_pServerConfig->Port, m_pServerConfig->BackLogCount);
 	return ERROR_CODE::NONE;

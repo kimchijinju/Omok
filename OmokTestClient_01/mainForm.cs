@@ -42,7 +42,7 @@ namespace csharp_test_client
             NetworkSendThread = new System.Threading.Thread(this.NetworkSendProcess);
             NetworkSendThread.Start();
 
-            IsBackGroundProcessRunning = true;            
+            IsBackGroundProcessRunning = true;
             dispatcherUITimer = new Timer();
             dispatcherUITimer.Tick += new EventHandler(BackGroundProcess);
             dispatcherUITimer.Interval = 100;
@@ -91,20 +91,6 @@ namespace csharp_test_client
         {
             SetDisconnectd();
             Network.Close();
-        }
-
-        private void button1_Click(object sender, EventArgs e)
-        {
-            if (string.IsNullOrEmpty(textSendText.Text))
-            {
-                MessageBox.Show("보낼 텍스트를 입력하세요");
-                return;
-            }
-                        
-            List<byte> dataSource = new List<byte>();
-            dataSource.AddRange(Encoding.UTF8.GetBytes(textSendText.Text));
-
-            SendPacketQueue.Enqueue(dataSource.ToArray());
         }
 
 
@@ -179,8 +165,8 @@ namespace csharp_test_client
             }
         }
 
-        void BackGroundProcess(object sender, EventArgs e)
 
+        void BackGroundProcess(object sender, EventArgs e)
         {
             ProcessLog();
 
@@ -205,7 +191,7 @@ namespace csharp_test_client
             {
                 MessageBox.Show(string.Format("ReadPacketQueueProcess. error:{0}", ex.Message));
             }
-}
+        }
 
         private void ProcessLog()
         {
@@ -278,12 +264,12 @@ namespace csharp_test_client
             dataSource.AddRange(BitConverter.GetBytes((Int16)packetSize));
             dataSource.AddRange(BitConverter.GetBytes((Int16)packetID));
             dataSource.AddRange(new byte[] { (byte)0 });
-            
+
             if (bodyData != null)
             {
                 dataSource.AddRange(bodyData);
             }
-           
+
             SendPacketQueue.Enqueue(dataSource.ToArray());
         }
 
@@ -293,17 +279,17 @@ namespace csharp_test_client
             listBoxRoomUserList.Items.Add(msg);
         }
 
-        void RemoveRoomUserList(string UserID)
+        void RemoveRoomUserList(string userID)
         {
             object removeItem = null;
-
-            foreach( var user in listBoxRoomUserList.Items)
+            DevLog.Write($"{userID}, end");
+            foreach (var user in listBoxRoomUserList.Items)
             {
                 var items = user.ToString();
-                if(items.Equals(UserID))
+                if (userID.Equals(items))
                 {
                     removeItem = user;
-                    return;
+                    break;
                 }
             }
 
@@ -319,8 +305,8 @@ namespace csharp_test_client
         {
             var loginReq = new LoginReqPacket();
             loginReq.SetValue(textBoxUserID.Text, textBoxUserPW.Text);
-                    
-            PostSendPacket(PACKET_ID.LOGIN_REQ, loginReq.ToBytes());            
+
+            PostSendPacket(PACKET_ID.LOGIN_REQ, loginReq.ToBytes());
             DevLog.Write($"로그인 요청:  {textBoxUserID.Text}, {textBoxUserPW.Text}");
         }
 
@@ -335,13 +321,13 @@ namespace csharp_test_client
 
         private void btn_RoomLeave_Click(object sender, EventArgs e)
         {
-            PostSendPacket(PACKET_ID.ROOM_LEAVE_REQ,  null);
-            DevLog.Write($"방 입장 요청:  {textBoxRoomNumber.Text} 번");
+            PostSendPacket(PACKET_ID.ROOM_LEAVE_REQ, null);
+            DevLog.Write($"방 퇴장 요청:  {textBoxRoomNumber.Text} 번");
         }
 
         private void btnRoomChat_Click(object sender, EventArgs e)
         {
-            if(textBoxRoomSendMsg.Text.IsEmpty())
+            if (textBoxRoomSendMsg.Text.IsEmpty())
             {
                 MessageBox.Show("채팅 메시지를 입력하세요");
                 return;
@@ -354,17 +340,22 @@ namespace csharp_test_client
             DevLog.Write($"방 채팅 요청");
         }
 
-        private void btnRoomRelay_Click(object sender, EventArgs e)
+        private void button_Ready_Click(object sender, EventArgs e)
         {
-            //if( textBoxRelay.Text.IsEmpty())
-            //{
-            //    MessageBox.Show("릴레이 할 데이터가 없습니다");
-            //    return;
-            //}
-            
-            //var bodyData = Encoding.UTF8.GetBytes(textBoxRelay.Text);
-            //PostSendPacket(PACKET_ID.PACKET_ID_ROOM_RELAY_REQ, bodyData);
-            //DevLog.Write($"방 릴레이 요청");
-        }       
+            PostSendPacket(PACKET_ID.PK_READY_GAME_ROOM_REQ, null);
+            DevLog.Write($"준비 요청");
+        }
+
+        private void button_Cancel_Click(object sender, EventArgs e)
+        {
+            PostSendPacket(PACKET_ID.PK_CANCEL_READY_GAME_ROOM_REQ, null);
+            DevLog.Write($"준비 취소 요청");
+        }
+
+        private void button_GameStart_Click(object sender, EventArgs e)
+        {
+            PostSendPacket(PACKET_ID.PK_START_GAME_ROOM_NTF, null);
+            DevLog.Write($"게임 시작 요청");
+        }
     }
 }

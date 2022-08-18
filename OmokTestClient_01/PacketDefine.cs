@@ -11,6 +11,7 @@ namespace csharp_test_client
         public const Int16 PACKET_HEADER_SIZE = 5;
         public const int MAX_USER_ID_BYTE_LENGTH = 16;
         public const int MAX_USER_PW_BYTE_LENGTH = 16;
+        public const int MAX_ROOM_CHAT_MSG_SIZE = 256;
     }
 
     public enum PACKET_ID : ushort
@@ -41,16 +42,20 @@ namespace csharp_test_client
         ROOM_CHAT_RES = 77,
         ROOM_CHAT_NOTIFY = 78,
 
+        PK_READY_GAME_ROOM_REQ = 81,
+        PK_READY_GAME_ROOM_RES = 82,
+        PK_READY_GAME_ROOM_NTF = 83,
 
+        PK_CANCEL_READY_GAME_ROOM_REQ = 86,
+        PK_CANCEL_READY_GAME_ROOM_RES = 87,
+        PK_CANCEL_READY_GAME_ROOM_NTF = 88,
 
-        //PACKET_ID_ERROR_NTF = 703,
+        PK_START_GAME_ROOM_NTF = 91,
 
-        // Ping(Heart-beat)
-        //PING_REQ = 706,
-        //PING_RES = 707,
+        PK_PUT_AL_ROOM_REQ = 96,
+        PK_PUT_AL_ROOM_RES = 97,
+        PK_END_GAME_ROOM_NTF = 98,
 
-        //PACKET_ID_ROOM_RELAY_REQ = 741,
-        //PACKET_ID_ROOM_RELAY_NTF = 742,
     }
 
 

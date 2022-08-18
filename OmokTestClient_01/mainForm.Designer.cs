@@ -36,8 +36,6 @@
             this.checkBoxLocalHostIP = new System.Windows.Forms.CheckBox();
             this.textBoxIP = new System.Windows.Forms.TextBox();
             this.label9 = new System.Windows.Forms.Label();
-            this.button1 = new System.Windows.Forms.Button();
-            this.textSendText = new System.Windows.Forms.TextBox();
             this.labelStatus = new System.Windows.Forms.Label();
             this.listBoxLog = new System.Windows.Forms.ListBox();
             this.label1 = new System.Windows.Forms.Label();
@@ -46,8 +44,9 @@
             this.label2 = new System.Windows.Forms.Label();
             this.button2 = new System.Windows.Forms.Button();
             this.Room = new System.Windows.Forms.GroupBox();
-            this.textBoxRelay = new System.Windows.Forms.TextBox();
-            this.btnRoomRelay = new System.Windows.Forms.Button();
+            this.btn_GameStart = new System.Windows.Forms.Button();
+            this.btn_Cancel = new System.Windows.Forms.Button();
+            this.btn_Ready = new System.Windows.Forms.Button();
             this.btnRoomChat = new System.Windows.Forms.Button();
             this.textBoxRoomSendMsg = new System.Windows.Forms.TextBox();
             this.listBoxRoomChatMsg = new System.Windows.Forms.ListBox();
@@ -64,22 +63,22 @@
             // btnDisconnect
             // 
             this.btnDisconnect.Font = new System.Drawing.Font("맑은 고딕", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.btnDisconnect.Location = new System.Drawing.Point(421, 55);
+            this.btnDisconnect.Location = new System.Drawing.Point(430, 49);
             this.btnDisconnect.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.btnDisconnect.Name = "btnDisconnect";
-            this.btnDisconnect.Size = new System.Drawing.Size(88, 32);
+            this.btnDisconnect.Size = new System.Drawing.Size(82, 35);
             this.btnDisconnect.TabIndex = 29;
-            this.btnDisconnect.Text = "접속 끊기";
+            this.btnDisconnect.Text = "접속끊기";
             this.btnDisconnect.UseVisualStyleBackColor = true;
             this.btnDisconnect.Click += new System.EventHandler(this.btnDisconnect_Click);
             // 
             // btnConnect
             // 
             this.btnConnect.Font = new System.Drawing.Font("맑은 고딕", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.btnConnect.Location = new System.Drawing.Point(420, 20);
+            this.btnConnect.Location = new System.Drawing.Point(430, 13);
             this.btnConnect.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.btnConnect.Name = "btnConnect";
-            this.btnConnect.Size = new System.Drawing.Size(88, 32);
+            this.btnConnect.Size = new System.Drawing.Size(82, 34);
             this.btnConnect.TabIndex = 28;
             this.btnConnect.Text = "접속하기";
             this.btnConnect.UseVisualStyleBackColor = true;
@@ -154,29 +153,6 @@
             this.label9.TabIndex = 10;
             this.label9.Text = "서버 주소:";
             // 
-            // button1
-            // 
-            this.button1.Font = new System.Drawing.Font("맑은 고딕", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.button1.Location = new System.Drawing.Point(319, 88);
-            this.button1.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(100, 32);
-            this.button1.TabIndex = 39;
-            this.button1.Text = "echo 보내기";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
-            // 
-            // textSendText
-            // 
-            this.textSendText.Location = new System.Drawing.Point(12, 92);
-            this.textSendText.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
-            this.textSendText.MaxLength = 32;
-            this.textSendText.Name = "textSendText";
-            this.textSendText.Size = new System.Drawing.Size(301, 23);
-            this.textSendText.TabIndex = 38;
-            this.textSendText.Text = "test1";
-            this.textSendText.WordWrap = false;
-            // 
             // labelStatus
             // 
             this.labelStatus.AutoSize = true;
@@ -191,16 +167,16 @@
             this.listBoxLog.FormattingEnabled = true;
             this.listBoxLog.HorizontalScrollbar = true;
             this.listBoxLog.ItemHeight = 15;
-            this.listBoxLog.Location = new System.Drawing.Point(13, 492);
+            this.listBoxLog.Location = new System.Drawing.Point(13, 462);
             this.listBoxLog.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.listBoxLog.Name = "listBoxLog";
-            this.listBoxLog.Size = new System.Drawing.Size(490, 169);
+            this.listBoxLog.Size = new System.Drawing.Size(490, 199);
             this.listBoxLog.TabIndex = 41;
             // 
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(10, 141);
+            this.label1.Location = new System.Drawing.Point(30, 100);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(45, 15);
             this.label1.TabIndex = 42;
@@ -208,7 +184,7 @@
             // 
             // textBoxUserID
             // 
-            this.textBoxUserID.Location = new System.Drawing.Point(59, 138);
+            this.textBoxUserID.Location = new System.Drawing.Point(79, 97);
             this.textBoxUserID.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.textBoxUserID.MaxLength = 6;
             this.textBoxUserID.Name = "textBoxUserID";
@@ -219,7 +195,7 @@
             // 
             // textBoxUserPW
             // 
-            this.textBoxUserPW.Location = new System.Drawing.Point(216, 136);
+            this.textBoxUserPW.Location = new System.Drawing.Point(237, 97);
             this.textBoxUserPW.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.textBoxUserPW.MaxLength = 6;
             this.textBoxUserPW.Name = "textBoxUserPW";
@@ -231,7 +207,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(158, 142);
+            this.label2.Location = new System.Drawing.Point(178, 101);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(53, 15);
             this.label2.TabIndex = 44;
@@ -240,7 +216,7 @@
             // button2
             // 
             this.button2.Font = new System.Drawing.Font("맑은 고딕", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.button2.Location = new System.Drawing.Point(319, 131);
+            this.button2.Location = new System.Drawing.Point(358, 92);
             this.button2.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(145, 32);
@@ -251,8 +227,9 @@
             // 
             // Room
             // 
-            this.Room.Controls.Add(this.textBoxRelay);
-            this.Room.Controls.Add(this.btnRoomRelay);
+            this.Room.Controls.Add(this.btn_GameStart);
+            this.Room.Controls.Add(this.btn_Cancel);
+            this.Room.Controls.Add(this.btn_Ready);
             this.Room.Controls.Add(this.btnRoomChat);
             this.Room.Controls.Add(this.textBoxRoomSendMsg);
             this.Room.Controls.Add(this.listBoxRoomChatMsg);
@@ -262,37 +239,51 @@
             this.Room.Controls.Add(this.btn_RoomEnter);
             this.Room.Controls.Add(this.textBoxRoomNumber);
             this.Room.Controls.Add(this.label3);
-            this.Room.Location = new System.Drawing.Point(13, 174);
+            this.Room.Location = new System.Drawing.Point(12, 140);
             this.Room.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.Room.Name = "Room";
             this.Room.Padding = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.Room.Size = new System.Drawing.Size(495, 312);
+            this.Room.Size = new System.Drawing.Size(500, 312);
             this.Room.TabIndex = 47;
             this.Room.TabStop = false;
             this.Room.Text = "Room";
             // 
-            // textBoxRelay
+            // btn_GameStart
             // 
-            this.textBoxRelay.Location = new System.Drawing.Point(306, 30);
-            this.textBoxRelay.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
-            this.textBoxRelay.MaxLength = 6;
-            this.textBoxRelay.Name = "textBoxRelay";
-            this.textBoxRelay.Size = new System.Drawing.Size(109, 23);
-            this.textBoxRelay.TabIndex = 55;
-            this.textBoxRelay.Text = "test";
-            this.textBoxRelay.WordWrap = false;
+            this.btn_GameStart.Font = new System.Drawing.Font("맑은 고딕", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.btn_GameStart.Location = new System.Drawing.Point(363, 43);
+            this.btn_GameStart.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            this.btn_GameStart.Name = "btn_GameStart";
+            this.btn_GameStart.Size = new System.Drawing.Size(119, 23);
+            this.btn_GameStart.TabIndex = 56;
+            this.btn_GameStart.Text = "Game Start";
+            this.btn_GameStart.UseVisualStyleBackColor = true;
+            this.btn_GameStart.Click += new System.EventHandler(this.button_GameStart_Click);
             // 
-            // btnRoomRelay
+            // btn_Cancel
             // 
-            this.btnRoomRelay.Font = new System.Drawing.Font("맑은 고딕", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.btnRoomRelay.Location = new System.Drawing.Point(420, 25);
-            this.btnRoomRelay.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
-            this.btnRoomRelay.Name = "btnRoomRelay";
-            this.btnRoomRelay.Size = new System.Drawing.Size(66, 32);
-            this.btnRoomRelay.TabIndex = 54;
-            this.btnRoomRelay.Text = "Relay";
-            this.btnRoomRelay.UseVisualStyleBackColor = true;
-            this.btnRoomRelay.Click += new System.EventHandler(this.btnRoomRelay_Click);
+            this.btn_Cancel.Font = new System.Drawing.Font("맑은 고딕", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.btn_Cancel.Location = new System.Drawing.Point(422, 12);
+            this.btn_Cancel.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            this.btn_Cancel.Name = "btn_Cancel";
+            this.btn_Cancel.Size = new System.Drawing.Size(60, 23);
+            this.btn_Cancel.TabIndex = 55;
+            this.btn_Cancel.Text = "cancel";
+            this.btn_Cancel.UseVisualStyleBackColor = true;
+            this.btn_Cancel.Click += new System.EventHandler(this.button_Cancel_Click);
+            // 
+            // btn_Ready
+            // 
+            this.btn_Ready.AutoEllipsis = true;
+            this.btn_Ready.Font = new System.Drawing.Font("맑은 고딕", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.btn_Ready.Location = new System.Drawing.Point(363, 12);
+            this.btn_Ready.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            this.btn_Ready.Name = "btn_Ready";
+            this.btn_Ready.Size = new System.Drawing.Size(53, 23);
+            this.btn_Ready.TabIndex = 54;
+            this.btn_Ready.Text = "Ready";
+            this.btn_Ready.UseVisualStyleBackColor = true;
+            this.btn_Ready.Click += new System.EventHandler(this.button_Ready_Click);
             // 
             // btnRoomChat
             // 
@@ -349,10 +340,10 @@
             // btn_RoomLeave
             // 
             this.btn_RoomLeave.Font = new System.Drawing.Font("맑은 고딕", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.btn_RoomLeave.Location = new System.Drawing.Point(216, 24);
+            this.btn_RoomLeave.Location = new System.Drawing.Point(225, 22);
             this.btn_RoomLeave.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.btn_RoomLeave.Name = "btn_RoomLeave";
-            this.btn_RoomLeave.Size = new System.Drawing.Size(66, 32);
+            this.btn_RoomLeave.Size = new System.Drawing.Size(70, 32);
             this.btn_RoomLeave.TabIndex = 48;
             this.btn_RoomLeave.Text = "Leave";
             this.btn_RoomLeave.UseVisualStyleBackColor = true;
@@ -361,10 +352,10 @@
             // btn_RoomEnter
             // 
             this.btn_RoomEnter.Font = new System.Drawing.Font("맑은 고딕", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
-            this.btn_RoomEnter.Location = new System.Drawing.Point(144, 22);
+            this.btn_RoomEnter.Location = new System.Drawing.Point(150, 22);
             this.btn_RoomEnter.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.btn_RoomEnter.Name = "btn_RoomEnter";
-            this.btn_RoomEnter.Size = new System.Drawing.Size(66, 32);
+            this.btn_RoomEnter.Size = new System.Drawing.Size(69, 32);
             this.btn_RoomEnter.TabIndex = 47;
             this.btn_RoomEnter.Text = "Enter";
             this.btn_RoomEnter.UseVisualStyleBackColor = true;
@@ -372,7 +363,7 @@
             // 
             // textBoxRoomNumber
             // 
-            this.textBoxRoomNumber.Location = new System.Drawing.Point(98, 25);
+            this.textBoxRoomNumber.Location = new System.Drawing.Point(101, 28);
             this.textBoxRoomNumber.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.textBoxRoomNumber.MaxLength = 6;
             this.textBoxRoomNumber.Name = "textBoxRoomNumber";
@@ -403,8 +394,6 @@
             this.Controls.Add(this.label1);
             this.Controls.Add(this.labelStatus);
             this.Controls.Add(this.listBoxLog);
-            this.Controls.Add(this.button1);
-            this.Controls.Add(this.textSendText);
             this.Controls.Add(this.btnDisconnect);
             this.Controls.Add(this.btnConnect);
             this.Controls.Add(this.groupBox5);
@@ -433,8 +422,6 @@
         private System.Windows.Forms.CheckBox checkBoxLocalHostIP;
         private System.Windows.Forms.TextBox textBoxIP;
         private System.Windows.Forms.Label label9;
-        private System.Windows.Forms.Button button1;
-        private System.Windows.Forms.TextBox textSendText;
         private System.Windows.Forms.Label labelStatus;
         private System.Windows.Forms.ListBox listBoxLog;
         private System.Windows.Forms.Label label1;
@@ -452,8 +439,9 @@
         private System.Windows.Forms.ListBox listBoxRoomChatMsg;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.ListBox listBoxRoomUserList;
-        private System.Windows.Forms.Button btnRoomRelay;
-        private System.Windows.Forms.TextBox textBoxRelay;
+        private System.Windows.Forms.Button btn_Cancel;
+        private System.Windows.Forms.Button btn_Ready;
+        private System.Windows.Forms.Button btn_GameStart;
     }
 }
 

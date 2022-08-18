@@ -10,6 +10,7 @@
 #include "User.h"
 #include "Room.h"
 
+using LOG_TYPE = NServerNetLib::LOG_TYPE;
 
 
 Room::Room() {}
@@ -32,7 +33,7 @@ void Room::SetNetwork(TcpNet* pNetwork, ILog* pLogger)
 
 void Room::Clear()
 {
-	m_IsUsed = false;
+	m_PlayingGame = false;
 	m_UserList.clear();
 }
 
@@ -50,31 +51,44 @@ void Room::NotifyEnterUser(User* user)
 {
 	PktNewUserEnterRoomNtf ntfPkt;
 
-	strcpy_s(ntfPkt.UserID, user->GetID().c_str());
-	ntfPkt.UserIDSize = (unsigned char)user->GetID().size();
+	strcpy_s(ntfPkt.UserID,user->GetID().c_str());
 
-	for (User* roomUser : m_UserList)
-	{
-		int userSession = roomUser->GetSessionIndex();
-		m_pRefNetwork->SendData(userSession, (short)PACKET_ID::PK_NEW_USER_ENTER_ROOM_NTF, sizeof(ntfPkt), (char*)&ntfPkt);
-	}
+	SendNotify((short)PACKET_ID::PK_NEW_USER_ENTER_ROOM_NTF, sizeof(ntfPkt), (char*)&ntfPkt);
 }
-#include <iostream>
-void Room::NotifyChat(wchar_t* msg, std::string UserID)
+
+void Room::GetRoomUserList(User* user)
+{
+	PktRoomUserListNtf ntfPkt;
+
+	ntfPkt.UserCount = 0;
+	
+	if (m_UserList.size() >= 1)
+	{
+		strcpy_s(ntfPkt.UserID1, m_UserList[0]->GetID().c_str());
+		ntfPkt.UserCount += 1;
+	}
+	
+	if (m_UserList.size() >= 2)
+	{
+		strcpy_s(ntfPkt.UserID2, m_UserList[1]->GetID().c_str());
+		ntfPkt.UserCount += 1;
+	}
+	m_pRefNetwork->SendData(user->GetSessionIndex(), (short)PACKET_ID::PK_ROOM_USER_LIST_NTF, sizeof(ntfPkt), (char*)&ntfPkt);
+}
+
+void Room::NotifyChat(char* msg, std::string UserID, int userSessionIndex)
 {
 	PktChatRoomNtf ntfPkt;
 
+	ntfPkt.IDlen = UserID.size();
 	strcpy(ntfPkt.UserID, UserID.c_str());
-	ntfPkt.UserIDSize = strlen(ntfPkt.UserID);
 
-	wcscpy_s(ntfPkt.Msg, msg);
-	ntfPkt.MsgSize = wcslen(ntfPkt.Msg);
-	std::cout << ntfPkt.Msg << std::endl;
-	for (User* roomUser : m_UserList)
-	{
-		int userSession = roomUser->GetSessionIndex();
-		m_pRefNetwork->SendData(userSession, (short)PACKET_ID::PK_CHAT_ROOM_NTF, sizeof(ntfPkt), (char*)&ntfPkt);
-	}
+	ntfPkt.Msglen = strlen(msg);
+	strcpy(ntfPkt.Msg, msg);
+
+	m_pRefLogger->Write(LOG_TYPE::L_DEBUG, "msg : %s", ntfPkt.Msg);
+
+	SendNotify((short)PACKET_ID::PK_CHAT_ROOM_NTF, sizeof(ntfPkt), (char*)&ntfPkt);	
 }
 
 void Room::NotifyLeaveUser(User* user)
@@ -82,14 +96,41 @@ void Room::NotifyLeaveUser(User* user)
 	PktUserLeaveRoomNtf ntfPkt;
 
 	strcpy_s(ntfPkt.UserID, user->GetID().c_str());
-	ntfPkt.UserIDSize = user->GetID().size();
 
+	SendNotify((short)PACKET_ID::PK_USER_LEAVE_ROOM_NTF, sizeof(ntfPkt), (char *)&ntfPkt);
+}
+
+void Room::SendNotify(short packetID, unsigned long long packetSize, char* ntfPkt)
+{
 	for (User* roomUser : m_UserList)
 	{
-		m_pRefNetwork->SendData(roomUser->GetSessionIndex(), (short)PACKET_ID::PK_USER_LEAVE_ROOM_NTF, sizeof(ntfPkt), (char*)&ntfPkt);
+		int roomUserIndex = roomUser->GetSessionIndex();
+		
+		m_pRefNetwork->SendData(roomUserIndex, packetID, packetSize, ntfPkt);
 	}
 }
+
 User* Room::GetUser(int index)
 {
 	return m_UserList[index];
+}
+
+bool Room::AllUserReady()
+{
+	if (m_UserList.size() != 2)
+	{
+		return false;
+	}
+
+	for (User* user : m_UserList)
+	{
+		if (!user->IsReady())
+			return false;
+	}
+	return true;
+}
+
+void Room::GameStart()
+{
+	m_PlayingGame = true;
 }

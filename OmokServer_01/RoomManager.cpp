@@ -50,7 +50,7 @@ Room* RoomManager::SearchEmptyRoom()
 {
 	for (int i = 0; i < (int)m_RoomList.size(); i++)
 	{
-		if (!m_RoomList[i]->IsUsed())
+		if (!m_RoomList[i]->IsPlayingGame())
 		{
 			return m_RoomList[i];
 		}
