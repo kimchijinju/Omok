@@ -21,4 +21,6 @@ enum class ERROR_CODE : short
 	USER_NOT_IN_ROOM = 233,
 
 	ROOM_INVALID_INDEX = 241,
+
+	NOT_ALL_READY = 242,
 };

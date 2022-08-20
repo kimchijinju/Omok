@@ -35,19 +35,27 @@ public:
 
 	void NotifyEnterUser(User* user);
 
+	void NotifyChat(char* msg, std::string UserID, int userSessionIndex);
+
 	void NotifyLeaveUser(User* user);
+	
+	void GetRoomUserList(User* user);
 
-	void NotifyChat(wchar_t* msg, std::string UserID);
+	void SendNotify(short packetID, unsigned long long packetSize, char* ntfPkt);
 
-	short GetIndex() { return m_Index;  }
+	short GetIndex() { return m_Index; }
 
 	User* GetUser(int index);
 
-	bool IsUsed() { return m_IsUsed; }
+	bool IsPlayingGame() { return m_PlayingGame; }
 		
 	short MaxUserCount() { return m_MaxUserCount; }
 
 	short GetUserCount() { return (short)m_UserList.size(); }
+
+	bool AllUserReady();
+
+	void GameStart();
 		
 private:
 	ILog* m_pRefLogger;
@@ -56,7 +64,7 @@ private:
 	short m_Index = -1;
 	short m_MaxUserCount;
 		
-	bool m_IsUsed = false;
+	bool m_PlayingGame = false;
 	std::vector<User*> m_UserList;
 
 	//Game* m_pGame = nullptr;

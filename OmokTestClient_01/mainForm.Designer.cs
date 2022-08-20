@@ -56,6 +56,7 @@
             this.btn_RoomEnter = new System.Windows.Forms.Button();
             this.textBoxRoomNumber = new System.Windows.Forms.TextBox();
             this.label3 = new System.Windows.Forms.Label();
+            this.OmokBoard = new System.Windows.Forms.Panel();
             this.groupBox5.SuspendLayout();
             this.Room.SuspendLayout();
             this.SuspendLayout();
@@ -250,6 +251,7 @@
             // 
             // btn_GameStart
             // 
+            this.btn_GameStart.Enabled = false;
             this.btn_GameStart.Font = new System.Drawing.Font("맑은 고딕", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.btn_GameStart.Location = new System.Drawing.Point(363, 43);
             this.btn_GameStart.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
@@ -381,11 +383,21 @@
             this.label3.TabIndex = 43;
             this.label3.Text = "Room Number:";
             // 
+            // OmokBoard
+            // 
+            this.OmokBoard.Location = new System.Drawing.Point(532, 23);
+            this.OmokBoard.Name = "OmokBoard";
+            this.OmokBoard.Size = new System.Drawing.Size(724, 638);
+            this.OmokBoard.TabIndex = 48;
+            this.OmokBoard.Paint += new System.Windows.Forms.PaintEventHandler(this.OmokBoard_Paint);
+            this.OmokBoard.MouseDown += new System.Windows.Forms.MouseEventHandler(this.OmokBoard_MouseDown);
+            // 
             // mainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(524, 694);
+            this.ClientSize = new System.Drawing.Size(1268, 694);
+            this.Controls.Add(this.OmokBoard);
             this.Controls.Add(this.Room);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.textBoxUserPW);
@@ -442,6 +454,7 @@
         private System.Windows.Forms.Button btn_Cancel;
         private System.Windows.Forms.Button btn_Ready;
         private System.Windows.Forms.Button btn_GameStart;
+        private System.Windows.Forms.Panel OmokBoard;
     }
 }
 

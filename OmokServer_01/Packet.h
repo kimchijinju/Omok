@@ -20,6 +20,7 @@ struct PktBase
 //- 로그인 요청
 const int MAX_USER_ID_SIZE = 16;
 const int MAX_USER_PASSWORD_SIZE = 16;
+const int MAX_ROOM_USER_COUNT = 2;
 struct PktLogInReq
 {
 	char szID[MAX_USER_ID_SIZE] = { 0, };
@@ -42,10 +43,16 @@ struct PktEnterRoomRes : PktBase
 };
 
 		
+struct PktRoomUserListNtf
+{
+	__int8 UserCount;
+	char UserID1[MAX_USER_ID_SIZE] = { 0, };
+	char UserID2[MAX_USER_ID_SIZE] = { 0, };
+};
+
 //- 룸에 있는 유저에게 새로 들어온 유저 정보 통보
 struct PktNewUserEnterRoomNtf
 {
-	unsigned char	UserIDSize;
 	char UserID[MAX_USER_ID_SIZE] = { 0, };
 };
 
@@ -60,7 +67,6 @@ struct PktLeaveRoomRes : PktBase
 //- 룸에서 나가는 유저 통보(로비에 있는 유저에게)
 struct PktUserLeaveRoomNtf
 {
-	unsigned char UserIDSize;
 	char UserID[MAX_USER_ID_SIZE] = { 0, };
 };
 		
@@ -69,7 +75,7 @@ struct PktUserLeaveRoomNtf
 const short MAX_ROOM_CHAT_MSG_SIZE = 256;
 struct PktChatRoomReq
 {
-	wchar_t Msg[MAX_ROOM_CHAT_MSG_SIZE] = { 0, };
+	char Msg[MAX_ROOM_CHAT_MSG_SIZE] = { 0, };
 };
 
 struct PktChatRoomRes : PktBase
@@ -78,10 +84,68 @@ struct PktChatRoomRes : PktBase
 
 struct PktChatRoomNtf
 {
-	unsigned char UserIDSize;
+	__int8 IDlen;
 	char UserID[MAX_USER_ID_SIZE] = { 0, };
-	short MsgSize;
-	wchar_t Msg[MAX_ROOM_CHAT_MSG_SIZE] = { 0, };
+	__int16 Msglen;
+	char Msg[MAX_ROOM_CHAT_MSG_SIZE] = { 0, };
+};
+
+//- 게임 시작 요청(준비완료 통보)
+struct PktReadyGameRoomReq {};
+
+struct PktReadyGameRoomRes : PktBase
+{
+};
+
+struct PktReadyGameRoomNtf
+{
+	char UserID[MAX_USER_ID_SIZE] = { 0, };
+};
+
+
+//- 게임 시작 취소 요청
+struct PktCancelReadyGameRoomReq {};
+
+struct PktCancelReadyGameRoomRes : PktBase
+{
+};
+
+struct PktCancelReadyGameRoomNtf
+{
+	char UserID[MAX_USER_ID_SIZE] = { 0, };
+};
+
+
+//서버의 게임 시작 통보
+struct PktStartGameRoomNtf
+{
+	char TurnUserID[MAX_USER_ID_SIZE] = { 0, };
+};
+
+
+// 알 두기
+struct PktPutALGameRoomReq
+{
+	short XPos;
+	short YPos;
+};
+
+struct PktPutALGameRoomRes : PktBase
+{
+};
+
+struct PktPutALGameRoomNtf
+{
+	short XPos;
+	short YPos;
+	char NextTurnUserID[MAX_USER_ID_SIZE] = { 0, };
+};
+
+
+// 게임 종료 통보
+struct PktEndGameRoomNtf
+{
+	char WinUserID[MAX_USER_ID_SIZE] = { 0, }; // 아이디 정보가 없으면 무승부
 };
 #pragma pack(pop)
 

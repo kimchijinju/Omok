@@ -26,10 +26,26 @@ namespace csharp_test_client
 
         Timer dispatcherUITimer;
 
+        int margin = 40;
+        int gridSize = 30; // 눈 크기
+        int stoneSize = 28; // 돌 크기
+        int flowerSize = 10; // 화점 크기
+
+        Graphics g;
+        Pen pen;
+        Brush wBrush, bBrush;
+
+        enum STONE { none, black, white };
+        STONE[,] Omok = new STONE[19, 19];
+        bool turn = false;  // false = 검은 돌, true = 흰돌
 
         public mainForm()
         {
             InitializeComponent();
+
+            pen = new Pen(System.Drawing.Color.Black);
+            bBrush = new SolidBrush(System.Drawing.Color.Black);
+            wBrush = new SolidBrush(System.Drawing.Color.White);
         }
 
         private void mainForm_Load(object sender, EventArgs e)
@@ -39,6 +55,8 @@ namespace csharp_test_client
             IsNetworkThreadRunning = true;
             NetworkReadThread = new System.Threading.Thread(this.NetworkReadProcess);
             NetworkReadThread.Start();
+
+
             NetworkSendThread = new System.Threading.Thread(this.NetworkSendProcess);
             NetworkSendThread.Start();
 
@@ -356,6 +374,74 @@ namespace csharp_test_client
         {
             PostSendPacket(PACKET_ID.PK_START_GAME_ROOM_NTF, null);
             DevLog.Write($"게임 시작 요청");
+        }
+
+        private void OmokBoard_Paint(object sender, PaintEventArgs e)
+        {
+
+            InitGameBoard();
+        }
+
+        private void OmokBoard_MouseDown(object sender, MouseEventArgs e)
+        {
+            // e.X는 픽셀단위, x는 바둑판 좌표
+            int x = (e.X - margin + gridSize / 2) / gridSize;
+            int y = (e.Y - margin + gridSize / 2) / gridSize;
+
+            if (Omok[x, y] != STONE.none)
+                return;
+
+            // 바둑판[x,y] 에 돌을 그린다
+            Rectangle r = new Rectangle(
+              margin + gridSize * x - stoneSize / 2,
+              margin + gridSize * y - stoneSize / 2,
+              stoneSize, stoneSize);
+
+            // 검은돌 차례
+            if (turn == false)
+            {
+                g.FillEllipse(bBrush, r);
+                turn = true;
+                Omok[x, y] = STONE.black;
+            }
+            else
+            {
+                g.FillEllipse(wBrush, r);
+                turn = false;
+                Omok[x, y] = STONE.white;
+            }
+        }
+
+        private void InitGameBoard()
+        {
+            // panel1에 Graphics 객체 생성
+            g = OmokBoard.CreateGraphics();
+
+            // 세로선 19개
+            for (int i = 0; i < 19; i++)
+            {
+                g.DrawLine(pen, new Point(margin + i * gridSize, margin),
+                new Point(margin + i * gridSize, margin + 18 * gridSize));
+            }
+
+            // 가로선 19개
+            for (int i = 0; i < 19; i++)
+            {
+                g.DrawLine(pen, new Point(margin, margin + i * gridSize),
+                new Point(margin + 18 * gridSize, margin + i * gridSize));
+            }
+
+            // 화점그리기
+            for (int x = 3; x <= 15; x += 6)
+            {
+                for (int y = 3; y <= 15; y += 6)
+                {
+                    g.FillEllipse(bBrush,
+                      margin + gridSize * x - flowerSize / 2,
+                      margin + gridSize * y - flowerSize / 2,
+                      flowerSize, flowerSize);
+                }
+            }
         }
     }
 }

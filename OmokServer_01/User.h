@@ -9,6 +9,7 @@ public:
 		NONE = 0,
 		LOGIN = 1,
 		ROOM = 2,
+		READY = 3,
 	};
 
 public:
@@ -60,14 +61,30 @@ public:
 		m_CurDomainState = DOMAIN_STATE::LOGIN;
 	}
 
-	bool IsCurDomainInLogIn() {
+	void Ready()
+	{
+		m_CurDomainState = DOMAIN_STATE::READY;
+	}
+	
+	void CancelReady()
+	{
+		m_CurDomainState = DOMAIN_STATE::ROOM;
+	}
+
+	bool IsCurDomainInLogIn() 
+	{
 		return m_CurDomainState == DOMAIN_STATE::LOGIN;
 	}
 
-	bool IsCurDomainInRoom() {
+	bool IsCurDomainInRoom() 
+	{
 		return m_CurDomainState == DOMAIN_STATE::ROOM;
 	}
 
+	bool IsReady()
+	{
+		return m_CurDomainState == DOMAIN_STATE::READY;
+	}
 
 protected:
 	short m_Index = -1;

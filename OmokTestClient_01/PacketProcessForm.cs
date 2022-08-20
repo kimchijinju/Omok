@@ -68,6 +68,10 @@ namespace csharp_test_client
             responsePkt.FromBytes(bodyData);
 
             DevLog.Write($"방 입장 결과:  {(ERROR_CODE)responsePkt.Result}");
+            if ((ERROR_CODE)responsePkt.Result == 0)
+            {
+                btn_GameStart.Enabled = true;
+            }    
         }
 
         void PacketProcess_RoomUserListNotify(byte[] bodyData)
@@ -102,6 +106,10 @@ namespace csharp_test_client
             RoomUserListClear();
 
             DevLog.Write($"방 나가기 결과:  {(ERROR_CODE)responsePkt.Result}");
+            if ((ERROR_CODE)responsePkt.Result == 0)
+            {
+                btn_GameStart.Enabled = false;
+            }
         }
 
         void PacketProcess_RoomLeaveUserNotify(byte[] bodyData)
