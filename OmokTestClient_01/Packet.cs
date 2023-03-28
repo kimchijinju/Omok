@@ -249,6 +249,53 @@ namespace csharp_test_client
         }
     }
 
+    public class PutALGameRoomReq
+    {
+        int x;
+        int y;
+
+        public void SetValue(int x, int y)
+        {
+            this.x = x;
+            this.y = y;
+        }
+
+        public byte[] ToBytes()
+        {
+            List<byte> dataSource = new List<byte>();
+            dataSource.AddRange(BitConverter.GetBytes(x));
+            dataSource.AddRange(BitConverter.GetBytes(y));
+            return dataSource.ToArray();
+        }
+    }
+
+    public class PutALNtf
+    {
+        public short XPos;
+        public short YPos;
+        public short Color;
+
+        public bool FromBytes(byte[] bodyData)
+        {
+            XPos = BitConverter.ToInt16(bodyData, 0);
+            YPos = BitConverter.ToInt16(bodyData, 2);
+            Color = BitConverter.ToInt16(bodyData, 4);
+            return true;
+        }
+
+    }
+
+    public class EndGameNtf
+    {
+        public string WinUserID;
+
+        public bool FromBytes(byte[] bodyData)
+        {
+            WinUserID = Encoding.UTF8.GetString(bodyData, 0, PacketDef.MAX_USER_ID_BYTE_LENGTH);
+            return true;
+        }
+    }
+
     public class PingRequest
     {
         public Int16 PingNum;

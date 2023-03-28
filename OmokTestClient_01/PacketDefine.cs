@@ -54,7 +54,8 @@ namespace csharp_test_client
 
         PK_PUT_AL_ROOM_REQ = 96,
         PK_PUT_AL_ROOM_RES = 97,
-        PK_END_GAME_ROOM_NTF = 98,
+        PK_PUT_AL_ROOM_NTF = 98,
+        PK_END_GAME_ROOM_NTF = 99,
 
     }
 

@@ -138,7 +138,7 @@
             // 
             this.textBoxIP.Location = new System.Drawing.Point(68, 24);
             this.textBoxIP.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
-            this.textBoxIP.MaxLength = 6;
+            this.textBoxIP.MaxLength = 15;
             this.textBoxIP.Name = "textBoxIP";
             this.textBoxIP.Size = new System.Drawing.Size(87, 23);
             this.textBoxIP.TabIndex = 11;
@@ -157,7 +157,7 @@
             // labelStatus
             // 
             this.labelStatus.AutoSize = true;
-            this.labelStatus.Location = new System.Drawing.Point(10, 676);
+            this.labelStatus.Location = new System.Drawing.Point(12, 632);
             this.labelStatus.Name = "labelStatus";
             this.labelStatus.Size = new System.Drawing.Size(112, 15);
             this.labelStatus.TabIndex = 40;
@@ -168,10 +168,10 @@
             this.listBoxLog.FormattingEnabled = true;
             this.listBoxLog.HorizontalScrollbar = true;
             this.listBoxLog.ItemHeight = 15;
-            this.listBoxLog.Location = new System.Drawing.Point(13, 462);
+            this.listBoxLog.Location = new System.Drawing.Point(13, 458);
             this.listBoxLog.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.listBoxLog.Name = "listBoxLog";
-            this.listBoxLog.Size = new System.Drawing.Size(490, 199);
+            this.listBoxLog.Size = new System.Drawing.Size(499, 154);
             this.listBoxLog.TabIndex = 41;
             // 
             // label1
@@ -251,7 +251,6 @@
             // 
             // btn_GameStart
             // 
-            this.btn_GameStart.Enabled = false;
             this.btn_GameStart.Font = new System.Drawing.Font("맑은 고딕", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.btn_GameStart.Location = new System.Drawing.Point(363, 43);
             this.btn_GameStart.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
@@ -385,9 +384,9 @@
             // 
             // OmokBoard
             // 
-            this.OmokBoard.Location = new System.Drawing.Point(532, 23);
+            this.OmokBoard.Location = new System.Drawing.Point(528, 27);
             this.OmokBoard.Name = "OmokBoard";
-            this.OmokBoard.Size = new System.Drawing.Size(724, 638);
+            this.OmokBoard.Size = new System.Drawing.Size(595, 593);
             this.OmokBoard.TabIndex = 48;
             this.OmokBoard.Paint += new System.Windows.Forms.PaintEventHandler(this.OmokBoard_Paint);
             this.OmokBoard.MouseDown += new System.Windows.Forms.MouseEventHandler(this.OmokBoard_MouseDown);
@@ -396,7 +395,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1268, 694);
+            this.ClientSize = new System.Drawing.Size(1159, 649);
             this.Controls.Add(this.OmokBoard);
             this.Controls.Add(this.Room);
             this.Controls.Add(this.button2);

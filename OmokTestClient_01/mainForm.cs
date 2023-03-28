@@ -34,18 +34,19 @@ namespace csharp_test_client
         Graphics g;
         Pen pen;
         Brush wBrush, bBrush;
-
-        enum STONE { none, black, white };
-        STONE[,] Omok = new STONE[19, 19];
-        bool turn = false;  // false = 검은 돌, true = 흰돌
+        enum STONE { NONE, BLACK, WHITE };
+        //STONE[,] Omok = new STONE[19, 19];
 
         public mainForm()
         {
             InitializeComponent();
+            
+            OmokBoard.BackColor = Color.Orange;
 
             pen = new Pen(System.Drawing.Color.Black);
             bBrush = new SolidBrush(System.Drawing.Color.Black);
             wBrush = new SolidBrush(System.Drawing.Color.White);
+
         }
 
         private void mainForm_Load(object sender, EventArgs e)
@@ -109,9 +110,17 @@ namespace csharp_test_client
         {
             SetDisconnectd();
             Network.Close();
+            InitButtonStatus(true);
         }
 
-
+        private void InitButtonStatus(bool flag)
+        {
+            btn_GameStart.Enabled = flag;
+            btn_Ready.Enabled = flag;
+            btn_Cancel.Enabled = flag;
+            btn_RoomEnter.Enabled = flag;
+            btn_RoomLeave.Enabled = flag;
+        }
 
         void NetworkReadProcess()
         {
@@ -387,29 +396,13 @@ namespace csharp_test_client
             // e.X는 픽셀단위, x는 바둑판 좌표
             int x = (e.X - margin + gridSize / 2) / gridSize;
             int y = (e.Y - margin + gridSize / 2) / gridSize;
+            /*if (Omok[x, y] != STONE.NONE)
+                return*/;
+            var reqPkt = new PutALGameRoomReq();
+            reqPkt.SetValue(x, y);
+            DevLog.Write($"x : {x}, y : {y}");
 
-            if (Omok[x, y] != STONE.none)
-                return;
-
-            // 바둑판[x,y] 에 돌을 그린다
-            Rectangle r = new Rectangle(
-              margin + gridSize * x - stoneSize / 2,
-              margin + gridSize * y - stoneSize / 2,
-              stoneSize, stoneSize);
-
-            // 검은돌 차례
-            if (turn == false)
-            {
-                g.FillEllipse(bBrush, r);
-                turn = true;
-                Omok[x, y] = STONE.black;
-            }
-            else
-            {
-                g.FillEllipse(wBrush, r);
-                turn = false;
-                Omok[x, y] = STONE.white;
-            }
+            PostSendPacket(PACKET_ID.PK_PUT_AL_ROOM_REQ, reqPkt.ToBytes());
         }
 
         private void InitGameBoard()

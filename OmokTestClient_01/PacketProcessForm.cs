@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace csharp_test_client
 {
-    public partial class mainForm
+    public partial class 
+        mainForm
     {
         Dictionary<PACKET_ID, Action<byte[]>> PacketFuncDic = new Dictionary<PACKET_ID, Action<byte[]>>();
 
@@ -24,7 +26,8 @@ namespace csharp_test_client
             PacketFuncDic.Add(PACKET_ID.PK_READY_GAME_ROOM_RES, PacketProcess_ReadyGameResponse);
             PacketFuncDic.Add(PACKET_ID.PK_CANCEL_READY_GAME_ROOM_RES, PacketProcess_CancelReadyGameResponse);
             PacketFuncDic.Add(PACKET_ID.PK_START_GAME_ROOM_NTF, PacketProcess_GameStart);
-
+            PacketFuncDic.Add(PACKET_ID.PK_PUT_AL_ROOM_NTF, PacketProcess_PutALNtf);
+            PacketFuncDic.Add(PACKET_ID.PK_END_GAME_ROOM_NTF, PacketProcess_EndGameNtf);
             //PacketFuncDic.Add(PACKET_ID.PACKET_ID_ROOM_RELAY_NTF, PacketProcess_RoomRelayNotify);
         }
 
@@ -188,12 +191,43 @@ namespace csharp_test_client
 
             DevLog.Write($"시작 턴 유저 : {ntfPkt.TurnUserID}");
 
-            btn_GameStart.Enabled = false;
-            btn_Ready.Enabled = false;
-            btn_Cancel.Enabled = false;
-            btn_RoomEnter.Enabled = false;
-            btn_RoomLeave.Enabled = false;
+            InitButtonStatus(false);
 
+        }
+
+        void PacketProcess_PutALNtf(byte[] bodyData)
+        {
+            var ntfPkt = new PutALNtf();
+            ntfPkt.FromBytes(bodyData);
+            int x = ntfPkt.XPos;
+            int y = ntfPkt.YPos;
+            //Omok[x,y] = (STONE) ntfPkt.Color;
+            // 바둑판[x,y] 에 돌을 그린다
+            Rectangle r = new Rectangle(
+              margin + gridSize * x - stoneSize / 2,
+              margin + gridSize * y - stoneSize / 2,
+              stoneSize, stoneSize);
+
+            // 검은돌 차례
+            if (ntfPkt.Color == (SByte) STONE.BLACK)
+            {
+                g.FillEllipse(bBrush, r);
+            }
+            else if(ntfPkt.Color == (SByte) STONE.WHITE)
+            {
+                g.FillEllipse(wBrush, r);
+            }
+        }
+
+        void PacketProcess_EndGameNtf(byte[] bodyData)
+        {
+            var ntfPkt = new EndGameNtf();
+
+            ntfPkt.FromBytes(bodyData);
+            System.Windows.Forms.MessageBox.Show($"{ntfPkt.WinUserID} is Winner! ");
+            InitButtonStatus(true);
+            OmokBoard.Refresh();
+            
         }
 
         void RoomUserListClear()
