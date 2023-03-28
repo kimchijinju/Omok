@@ -126,8 +126,8 @@ struct PktStartGameRoomNtf
 // 알 두기
 struct PktPutALGameRoomReq
 {
-	short XPos;
-	short YPos;
+	int XPos;
+	int YPos;
 };
 
 struct PktPutALGameRoomRes : PktBase
@@ -138,7 +138,7 @@ struct PktPutALGameRoomNtf
 {
 	short XPos;
 	short YPos;
-	char NextTurnUserID[MAX_USER_ID_SIZE] = { 0, };
+	short color;
 };
 
 

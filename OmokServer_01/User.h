@@ -10,6 +10,7 @@ public:
 		LOGIN = 1,
 		ROOM = 2,
 		READY = 3,
+		PLAY = 4,
 	};
 
 public:
@@ -70,6 +71,11 @@ public:
 	{
 		m_CurDomainState = DOMAIN_STATE::ROOM;
 	}
+	
+	void PlayGame()
+	{
+		m_CurDomainState = DOMAIN_STATE::PLAY;
+	}
 
 	bool IsCurDomainInLogIn() 
 	{
@@ -84,6 +90,11 @@ public:
 	bool IsReady()
 	{
 		return m_CurDomainState == DOMAIN_STATE::READY;
+	}
+	
+	bool IsPlaying()
+	{
+		return m_CurDomainState == DOMAIN_STATE::PLAY;
 	}
 
 protected:

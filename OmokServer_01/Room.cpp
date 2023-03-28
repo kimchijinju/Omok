@@ -115,6 +115,11 @@ User* Room::GetUser(int index)
 	return m_UserList[index];
 }
 
+bool Room::FullRoom()
+{
+	return m_UserList.size() > MAX_ROOM_USER_COUNT;
+}
+
 bool Room::AllUserReady()
 {
 	if (m_UserList.size() != 2)
@@ -130,7 +135,10 @@ bool Room::AllUserReady()
 	return true;
 }
 
-void Room::GameStart()
+void Room::GameStart(User* black, User* white)
 {
+	black->PlayGame();
+	white->PlayGame();
 	m_PlayingGame = true;
+	m_pGame = new Game(black, white);
 }

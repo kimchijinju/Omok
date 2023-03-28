@@ -5,17 +5,13 @@
 #include <memory>
 
 #include "User.h"
-
+#include "Game.h"
 
 namespace NServerNetLib { class ITcpNetwork; }
 namespace NServerNetLib { class ILog; }
-
-
 	
 using TcpNet = NServerNetLib::ITcpNetwork;
 using ILog = NServerNetLib::ILog;
-
-class Game;
 
 class Room
 {
@@ -47,6 +43,8 @@ public:
 
 	User* GetUser(int index);
 
+	bool FullRoom();
+
 	bool IsPlayingGame() { return m_PlayingGame; }
 		
 	short MaxUserCount() { return m_MaxUserCount; }
@@ -55,7 +53,9 @@ public:
 
 	bool AllUserReady();
 
-	void GameStart();
+	Game* GetGame() { return m_pGame; }
+
+	void GameStart(User* black, User* white);
 		
 private:
 	ILog* m_pRefLogger;
@@ -67,5 +67,5 @@ private:
 	bool m_PlayingGame = false;
 	std::vector<User*> m_UserList;
 
-	//Game* m_pGame = nullptr;
+	Game* m_pGame = nullptr;
 };

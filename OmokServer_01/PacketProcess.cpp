@@ -7,6 +7,7 @@
 #include "Room.h"
 #include "RoomManager.h"
 #include "PacketProcess.h"
+#include "Game.h"
 
 using LOG_TYPE = NServerNetLib::LOG_TYPE;
 using ServerConfig = NServerNetLib::ServerConfig;
@@ -58,6 +59,9 @@ void PacketProcess::Process(PacketInfo packetInfo)
 	case (int)commonPacketId::PK_START_GAME_ROOM_NTF:
 		GameStart(packetInfo);
 		break;
+	case (int)commonPacketId::PK_PUT_AL_ROOM_REQ:
+		PutAL(packetInfo);
+		break;
 	}
 	
 }
@@ -102,7 +106,6 @@ ERROR_CODE PacketProcess::Login(PacketInfo packetInfo)
 	return ERROR_CODE::NONE;
 }
 
-//TODO: 방 입장
 ERROR_CODE PacketProcess::EnterRoom(PacketInfo packetInfo)
 {
 	PktEnterRoomRes resPkt;
@@ -137,10 +140,20 @@ ERROR_CODE PacketProcess::EnterRoom(PacketInfo packetInfo)
 	Room* room;
 
 	if (reqPkt->RoomNumber == -1)
+	{
 		room = m_pRefRoomMgr->SearchEmptyRoom();
+	}
 	else
+	{
 		room = m_pRefRoomMgr->GetRoom(reqPkt->RoomNumber);
+	}
 
+	if (room->FullRoom())
+	{
+		resPkt.SetError(ERROR_CODE::ROOM_INVALID_INDEX);
+		return SendError(packetInfo.SessionIndex, (short)PACKET_ID::PK_ENTER_ROOM_RES, sizeof(resPkt), (char*)&resPkt, ERROR_CODE::ROOM_INVALID_INDEX);
+	}
+	
 	room->NotifyEnterUser(user);
 
 	room->EnterUser(user);
@@ -153,7 +166,6 @@ ERROR_CODE PacketProcess::EnterRoom(PacketInfo packetInfo)
 	return ERROR_CODE::NONE;
 }
 
-//TODO: 방 나가기
 ERROR_CODE PacketProcess::LeaveRoom(PacketInfo packetInfo)
 {
 	PktLeaveRoomRes resPkt;
@@ -186,7 +198,6 @@ ERROR_CODE PacketProcess::LeaveRoom(PacketInfo packetInfo)
 }
 
 
-//TODO: 방 채팅
 ERROR_CODE PacketProcess::ChatRoom(PacketInfo packetInfo)
 {
 	PktChatRoomRes resPkt;
@@ -199,14 +210,14 @@ ERROR_CODE PacketProcess::ChatRoom(PacketInfo packetInfo)
 		return SendError(packetInfo.SessionIndex, (short)PACKET_ID::PK_CHAT_ROOM_RES, sizeof(resPkt), (char*)&resPkt, ERROR_CODE::UNASSIGNED_ERROR);
 	}
 
-	if (!user->IsCurDomainInRoom())
+	Room* room = m_pRefRoomMgr->GetRoom(user->GetRoomIndex());
+	
+	if (room == nullptr)
 	{
 		resPkt.SetError(ERROR_CODE::USER_NOT_IN_ROOM);
 		return SendError(packetInfo.SessionIndex, (short)PACKET_ID::PK_CHAT_ROOM_RES, sizeof(resPkt), (char*)&resPkt, ERROR_CODE::USER_NOT_IN_ROOM);
 	}
 
-	Room* room = m_pRefRoomMgr->GetRoom(user->GetRoomIndex());
-	
 	room->NotifyChat(reqPkt->Msg, user->GetID(), user->GetSessionIndex());
 
 	resPkt.SetError(ERROR_CODE::NONE);
@@ -277,13 +288,69 @@ ERROR_CODE PacketProcess::GameStart(PacketInfo packetInfo)
 
 	if (room->AllUserReady())
 	{
-		room->GameStart();
-		strcpy(ntfPkt.TurnUserID, user->GetID().c_str());
+		User* black = room->GetUser(0);
+		User* white = room->GetUser(1);
+		room->GameStart(black, white);
+		strcpy(ntfPkt.TurnUserID, black->GetID().c_str());
 		room->SendNotify((short)PACKET_ID::PK_START_GAME_ROOM_NTF, sizeof(ntfPkt), (char*)&ntfPkt);
 		return ERROR_CODE::NONE;
 	}
 
 	return ERROR_CODE::UNASSIGNED_ERROR;
+}
+
+ERROR_CODE PacketProcess::PutAL(PacketInfo packetInfo)
+{
+	PktPutALGameRoomRes resPkt;
+
+	auto reqPkt = (PktPutALGameRoomReq*)packetInfo.pRefData;
+	
+	auto [errorCode, user] = m_pRefUserMgr->GetUser(packetInfo.SessionIndex);
+
+	if (errorCode != ERROR_CODE::NONE)
+	{
+		resPkt.SetError(ERROR_CODE::UNASSIGNED_ERROR);
+		return SendError(packetInfo.SessionIndex, (short)PACKET_ID::PK_PUT_AL_ROOM_RES, sizeof(resPkt), (char*)&resPkt, ERROR_CODE::UNASSIGNED_ERROR);
+	}
+
+	if (!user->IsPlaying())
+	{
+		resPkt.SetError(ERROR_CODE::UNASSIGNED_ERROR);
+		return SendError(packetInfo.SessionIndex, (short)PACKET_ID::PK_PUT_AL_ROOM_RES, sizeof(resPkt), (char*)&resPkt, ERROR_CODE::UNASSIGNED_ERROR);
+	}
+	
+	Room* room = m_pRefRoomMgr->GetRoom(user->GetRoomIndex());
+	Game* game = room->GetGame();
+
+	m_pRefLogger->Write(LOG_TYPE::L_DEBUG, "x : %d y : %d", reqPkt->XPos, reqPkt->YPos);
+
+	if (game == nullptr)
+	{
+		resPkt.SetError(ERROR_CODE::UNASSIGNED_ERROR);
+		return SendError(packetInfo.SessionIndex, (short)PACKET_ID::PK_PUT_AL_ROOM_RES, sizeof(resPkt), (char*)&resPkt, ERROR_CODE::UNASSIGNED_ERROR);
+	}
+
+	int x = reqPkt->XPos;
+	int y = reqPkt->YPos;
+
+	PktPutALGameRoomNtf ntfPkt = game->PutAL(x, y, user->GetID());
+
+	if (ntfPkt.color == -1)
+	{
+		resPkt.SetError(ERROR_CODE::UNASSIGNED_ERROR);
+		return SendError(packetInfo.SessionIndex, (short)PACKET_ID::PK_PUT_AL_ROOM_RES, sizeof(resPkt), (char*)&resPkt, ERROR_CODE::UNASSIGNED_ERROR);
+	}
+
+	room->SendNotify((short)PACKET_ID::PK_PUT_AL_ROOM_NTF, sizeof(ntfPkt), (char*)&ntfPkt);
+
+	if (game->CheckOmok(x, y))
+	{
+		PktEndGameRoomNtf ntfPkt;
+		strcpy(ntfPkt.WinUserID, user->GetID().c_str());
+		room->SendNotify((short)PACKET_ID::PK_END_GAME_ROOM_NTF, sizeof(ntfPkt), (char*)&ntfPkt);
+	}
+
+	return SendError(packetInfo.SessionIndex, (short)PACKET_ID::PK_PUT_AL_ROOM_RES, sizeof(resPkt), (char*)&resPkt, ERROR_CODE::NONE);
 }
 
 ERROR_CODE PacketProcess::SendError(int sessionIndex, short packetID, int size, char* data, ERROR_CODE errorCode)
