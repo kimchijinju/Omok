@@ -1,4 +1,4 @@
-![omok](omok.png)
+![omok](./omok.PNG)
 
 
 ## 1. 소개
