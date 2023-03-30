@@ -86,8 +86,6 @@ void Room::NotifyChat(char* msg, std::string UserID, int userSessionIndex)
 	ntfPkt.Msglen = strlen(msg);
 	strcpy(ntfPkt.Msg, msg);
 
-	m_pRefLogger->Write(LOG_TYPE::L_DEBUG, "msg : %s", ntfPkt.Msg);
-
 	SendNotify((short)PACKET_ID::PK_CHAT_ROOM_NTF, sizeof(ntfPkt), (char*)&ntfPkt);	
 }
 

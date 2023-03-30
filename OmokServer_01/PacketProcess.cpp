@@ -322,8 +322,6 @@ ERROR_CODE PacketProcess::PutAL(PacketInfo packetInfo)
 	Room* room = m_pRefRoomMgr->GetRoom(user->GetRoomIndex());
 	Game* game = room->GetGame();
 
-	m_pRefLogger->Write(LOG_TYPE::L_DEBUG, "x : %d y : %d", reqPkt->XPos, reqPkt->YPos);
-
 	if (game == nullptr)
 	{
 		resPkt.SetError(ERROR_CODE::UNASSIGNED_ERROR);
